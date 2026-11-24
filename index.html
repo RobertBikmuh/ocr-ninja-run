@@ -8,19 +8,21 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     /* ==========================================================================
-       БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОС СТИЛЕЙ
+       БАЗОВЫЕ ПЕРЕМЕННЫЕ И СТИЛИ ROB ATHLETIC SYSTEM
        ========================================================================== */
     :root {
-      --bg-dark: #0A0D12;
-      --bg-panel: rgba(15, 19, 26, 0.9);
-      --orange: #FF5500;
+      --bg-dark: #0b0e14;
+      --bg-panel: rgba(14, 18, 26, 0.94);
+      --orange: #ff5500;
       --orange-glow: rgba(255, 85, 0, 0.45);
-      --lime: #B8FF00;
+      --lime: #b8ff00;
       --lime-glow: rgba(184, 255, 0, 0.35);
-      --mud: #3B2A1E;
-      --text-main: #F4F6FA;
-      --text-muted: #94A0B4;
-      --border-subtle: rgba(255, 255, 255, 0.11);
+      --gold: #ffd000;
+      --gold-glow: rgba(255, 208, 0, 0.4);
+      --danger: #ff2e4c;
+      --text-main: #f4f7fb;
+      --text-muted: #93a0b5;
+      --border: rgba(255, 255, 255, 0.12);
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -80,19 +82,20 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      max-width: calc(100% - 56px);
     }
 
     .score-card {
-      background: rgba(10, 13, 18, 0.78);
+      background: rgba(11, 14, 20, 0.8);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid var(--border-subtle);
+      border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 7px 12px;
+      padding: 6px 11px;
       display: flex;
       align-items: baseline;
-      gap: 14px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
     }
 
     .score-block {
@@ -101,7 +104,7 @@
     }
 
     .score-label {
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -109,55 +112,132 @@
     }
 
     .score-value {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
       line-height: 1.1;
       color: var(--text-main);
     }
 
-    .score-value.dist {
-      color: var(--orange);
+    .score-value.dist { color: var(--orange); }
+    .score-value.best { font-size: 14px; color: var(--lime); }
+
+    /* Шкала хвата (GRIP) */
+    .grip-box {
+      background: rgba(11, 14, 20, 0.8);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 5px 9px;
+      width: 178px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .score-value.best {
-      font-size: 15px;
-      color: var(--lime);
+    .grip-box.low {
+      border-color: rgba(255, 46, 76, 0.8);
+      box-shadow: 0 0 14px rgba(255, 46, 76, 0.45);
+      animation: pulseWarn 0.55s infinite alternate;
     }
 
-    .rank-pill {
+    @keyframes pulseWarn {
+      from { transform: scale(1); }
+      to { transform: scale(1.03); }
+    }
+
+    .grip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .grip-title { color: #d9e2ef; }
+    .grip-pct { color: var(--lime); font-variant-numeric: tabular-nums; }
+    .grip-box.low .grip-pct { color: var(--danger); }
+
+    .grip-track {
+      width: 100%;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .grip-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--orange), var(--lime));
+      transition: width 0.09s linear, background 0.2s ease;
+    }
+
+    .grip-box.low .grip-fill {
+      background: linear-gradient(90deg, #ff1e42, #ff6b00);
+    }
+
+    /* Бейджи биома и комбо */
+    .pills-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .biome-pill {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      align-self: flex-start;
-      background: rgba(255, 85, 0, 0.16);
-      border: 1px solid rgba(255, 85, 0, 0.45);
+      gap: 5px;
+      background: rgba(11, 14, 20, 0.78);
+      border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 4px 11px;
-      font-size: 11px;
+      padding: 3px 9px;
+      font-size: 9.5px;
       font-weight: 800;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: #FF8E53;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
+      color: #dce4f2;
     }
 
-    .rank-dot {
-      width: 7px;
-      height: 7px;
+    .biome-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: var(--orange);
       box-shadow: 0 0 8px var(--orange);
     }
 
+    .flow-pill {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, var(--orange), var(--gold));
+      color: #0b0e14;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 0 14px var(--gold-glow);
+      animation: pulseWarn 0.45s infinite alternate;
+    }
+
+    .flow-pill.active { display: inline-flex; }
+
+    /* Кнопка звука */
     .sound-btn {
       pointer-events: auto;
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(10, 13, 18, 0.78);
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: rgba(11, 14, 20, 0.8);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       color: var(--text-main);
@@ -165,49 +245,59 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.12s ease, border-color 0.15s ease;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      transition: transform 0.12s ease;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      flex-shrink: 0;
     }
 
-    .sound-btn:active {
-      transform: scale(0.92);
-    }
+    .sound-btn:active { transform: scale(0.9); }
+    .sound-btn.muted { color: var(--text-muted); }
 
-    .sound-btn.muted {
-      color: var(--text-muted);
-      border-color: rgba(255, 255, 255, 0.06);
-    }
-
-    /* Всплывающее уведомление о ранге */
-    .rank-toast {
+    /* Всплывающее уведомление сверху (Тост) */
+    .toast {
       position: absolute;
-      top: calc(88px + var(--safe-top));
+      top: calc(114px + var(--safe-top));
       left: 50%;
-      transform: translateX(-50%) translateY(-14px) scale(0.92);
+      transform: translateX(-50%) translateY(-12px) scale(0.94);
       opacity: 0;
       pointer-events: none;
-      z-index: 15;
-      background: linear-gradient(135deg, rgba(255, 85, 0, 0.96), rgba(215, 55, 0, 0.96));
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.28);
+      z-index: 40;
+      background: linear-gradient(135deg, rgba(255, 85, 0, 0.96), rgba(220, 60, 0, 0.96));
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 999px;
       padding: 7px 16px;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 900;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       box-shadow: 0 8px 28px var(--orange-glow);
-      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
       white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .rank-toast.show {
+    .toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0) scale(1);
     }
 
+    .toast.lime {
+      background: linear-gradient(135deg, #9ce600, #b8ff00);
+      color: #0b0e14;
+      box-shadow: 0 8px 26px var(--lime-glow);
+    }
+
+    .toast.gold {
+      background: linear-gradient(135deg, #ffae00, #ffd000);
+      color: #0b0e14;
+      box-shadow: 0 8px 26px var(--gold-glow);
+    }
+
     /* ==========================================================================
-       ДВЕ КРУПНЫЕ ТАКТИЛЬНЫЕ КНОПКИ УПРАВЛЕНИЯ ВНИЗУ ЭКРАНА
+       КРУПНЫЕ КНОПКИ УПРАВЛЕНИЯ ВНИЗУ ЭКРАНА
        ========================================================================== */
     .controls-bar {
       position: absolute;
@@ -220,8 +310,8 @@
       pointer-events: none;
       z-index: 12;
       opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.25s ease, transform 0.25s ease;
+      transform: translateY(14px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
     }
 
     .controls-bar.visible {
@@ -235,11 +325,11 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      height: 58px;
+      height: 60px;
       border-radius: 18px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
       cursor: pointer;
       backdrop-filter: blur(8px);
@@ -249,34 +339,34 @@
 
     .ctrl-btn.slide-btn {
       border: 1.5px solid rgba(184, 255, 0, 0.55);
-      background: rgba(16, 24, 16, 0.8);
+      background: rgba(14, 24, 14, 0.72);
       color: var(--lime);
-      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(184, 255, 0, 0.12);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(184, 255, 0, 0.14);
     }
 
     .ctrl-btn.slide-btn:active,
     .ctrl-btn.slide-btn.active {
       transform: scale(0.95);
-      background: rgba(184, 255, 0, 0.24);
+      background: rgba(184, 255, 0, 0.26);
       box-shadow: 0 0 22px var(--lime-glow);
     }
 
     .ctrl-btn.jump-btn {
       border: 1.5px solid rgba(255, 85, 0, 0.65);
-      background: rgba(32, 18, 12, 0.82);
-      color: #FF8A4C;
-      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(255, 85, 0, 0.16);
+      background: rgba(34, 18, 12, 0.74);
+      color: #ff8c52;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), inset 0 0 14px rgba(255, 85, 0, 0.18);
     }
 
     .ctrl-btn.jump-btn:active,
     .ctrl-btn.jump-btn.active {
       transform: scale(0.95);
-      background: rgba(255, 85, 0, 0.28);
+      background: rgba(255, 85, 0, 0.3);
       box-shadow: 0 0 22px var(--orange-glow);
     }
 
     /* ==========================================================================
-       ОВЕРЛЕИ (СТАРТ И ФИНИШ / ПОРАЖЕНИЕ)
+       ОВЕРЛЕИ (СТАРТ, QTE БЁРПИ, QTE ЭВЕРЕСТ, ФИНИШ, ЛИДЕРБОРД)
        ========================================================================== */
     .overlay {
       position: absolute;
@@ -284,12 +374,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 18px;
-      background: radial-gradient(circle at 50% 30%, rgba(255, 85, 0, 0.13), rgba(10, 13, 18, 0.88) 72%);
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
+      padding: 14px;
+      background: radial-gradient(circle at 50% 25%, rgba(255, 85, 0, 0.14), rgba(11, 14, 20, 0.9) 74%);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 20;
-      transition: opacity 0.25s ease, visibility 0.25s ease;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
     }
 
     .overlay.hidden {
@@ -300,16 +390,20 @@
 
     .card {
       width: 100%;
-      max-width: 380px;
+      max-width: 390px;
+      max-height: calc(100dvh - 28px - var(--safe-top) - var(--safe-bottom));
+      overflow-y: auto;
       background: var(--bg-panel);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.13);
       border-radius: 24px;
-      padding: 24px 20px 20px;
+      padding: 20px 18px 18px;
       text-align: center;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 85, 0, 0.08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(255, 85, 0, 0.08);
       position: relative;
-      overflow: hidden;
+      scrollbar-width: none;
     }
+
+    .card::-webkit-scrollbar { display: none; }
 
     .card::before {
       content: "";
@@ -319,13 +413,13 @@
       right: 14%;
       height: 3px;
       border-radius: 0 0 6px 6px;
-      background: linear-gradient(90deg, var(--orange), var(--lime));
+      background: linear-gradient(90deg, var(--orange), var(--lime), var(--gold));
       box-shadow: 0 0 14px var(--orange-glow);
     }
 
     .brand-tag {
       display: inline-block;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -333,192 +427,438 @@
       background: rgba(184, 255, 0, 0.1);
       border: 1px solid rgba(184, 255, 0, 0.28);
       border-radius: 999px;
-      padding: 5px 12px;
-      margin-bottom: 12px;
+      padding: 4px 11px;
+      margin-bottom: 8px;
     }
 
     .game-title {
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 900;
       letter-spacing: -0.02em;
-      line-height: 1.06;
+      line-height: 1.08;
       text-transform: uppercase;
-      margin-bottom: 6px;
-      color: #FFFFFF;
+      margin-bottom: 4px;
+      color: #ffffff;
     }
 
     .game-title span {
-      background: linear-gradient(90deg, var(--orange), #FF8A00);
+      background: linear-gradient(90deg, var(--orange), var(--gold));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .subtitle {
+    .greeting {
       font-size: 12.5px;
       color: var(--text-muted);
-      line-height: 1.4;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
-    .rules-box {
-      background: rgba(255, 255, 255, 0.04);
+    .greeting strong { color: var(--text-main); }
+
+    /* Коллекция браслетов (5 уровней) */
+    .wristbands-section {
+      background: rgba(255, 255, 255, 0.035);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
-      padding: 12px 13px;
-      margin-bottom: 18px;
-      font-size: 12px;
-      line-height: 1.55;
-      color: #D6DDE9;
-      text-align: left;
+      padding: 10px 10px 9px;
+      margin-bottom: 12px;
     }
 
-    .rules-box b {
-      color: var(--lime);
-    }
-
-    .rules-box .accent-o {
-      color: #FF8A4C;
-      font-weight: 800;
-    }
-
-    .loot-row {
+    .wb-header {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      margin-top: 9px;
-      padding-top: 9px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 11.5px;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
       color: var(--text-muted);
+      margin-bottom: 8px;
     }
 
-    .loot-badge {
-      display: inline-flex;
-      align-items: center;
+    .wb-header span:last-child { color: var(--gold); }
+
+    .wb-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
       gap: 6px;
     }
 
-    .dot-chalk {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #FFFFFF;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    .wb-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.38;
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
-    .dot-band {
-      width: 9px;
-      height: 9px;
+    .wb-item.unlocked { opacity: 1; }
+
+    .wb-ring {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      border: 2.5px solid var(--orange);
-      box-shadow: 0 0 8px var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 4px solid #555;
+      background: rgba(11, 14, 20, 0.85);
+      font-size: 12px;
+      position: relative;
     }
 
-    /* Статистика на экране Game Over */
+    .wb-item.unlocked .wb-ring {
+      box-shadow: 0 0 12px var(--ring-glow, rgba(255,255,255,0.4));
+    }
+
+    .wb-label {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #d0d9e8;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .wb-dist {
+      font-size: 8px;
+      color: var(--text-muted);
+    }
+
+    /* Правила на старте */
+    .rules-box {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #d6dde9;
+      text-align: left;
+    }
+
+    .rules-box b { color: var(--lime); }
+    .rules-box .o { color: #ff8a4c; font-weight: 800; }
+    .rules-box .g { color: var(--gold); font-weight: 800; }
+
+    /* Блок секретного промокода */
+    .promo-box {
+      background: linear-gradient(135deg, rgba(184, 255, 0, 0.12), rgba(255, 208, 0, 0.1));
+      border: 1px solid rgba(184, 255, 0, 0.45);
+      border-radius: 16px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .promo-box.hidden { display: none; }
+
+    .promo-tag {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--lime);
+      margin-bottom: 4px;
+    }
+
+    .promo-code-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .promo-code {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      color: var(--gold);
+      background: rgba(11, 14, 20, 0.75);
+      padding: 4px 12px;
+      border-radius: 10px;
+      border: 1px dashed rgba(255, 208, 0, 0.5);
+    }
+
+    .promo-copy-btn {
+      border: none;
+      background: var(--lime);
+      color: #0b0e14;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 7px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .promo-copy-btn:active { transform: scale(0.95); }
+
+    .promo-hint {
+      font-size: 10.5px;
+      color: #d6dde9;
+      line-height: 1.3;
+    }
+
+    /* Статистика Game Over */
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin: 14px 0 12px;
+      gap: 8px;
+      margin: 10px 0 11px;
     }
 
     .stat-tile {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 14px;
-      padding: 10px 8px;
+      padding: 8px 6px;
     }
 
     .stat-tile-label {
-      font-size: 9.5px;
+      font-size: 9px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .stat-tile-value {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
       color: var(--text-main);
     }
 
-    .stat-tile-value.orange { color: #FF7A33; }
+    .stat-tile-value.orange { color: #ff7a33; }
     .stat-tile-value.lime { color: var(--lime); }
+    .stat-tile-value.gold { color: var(--gold); }
 
     .new-record-badge {
       display: inline-block;
-      margin-bottom: 6px;
-      padding: 4px 12px;
+      margin-bottom: 4px;
+      padding: 3px 11px;
       border-radius: 999px;
       background: rgba(184, 255, 0, 0.16);
       border: 1px solid rgba(184, 255, 0, 0.5);
       color: var(--lime);
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .new-record-badge.hidden {
-      display: none;
-    }
+    .new-record-badge.hidden { display: none; }
 
-    .achieved-rank {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 9px 12px;
-      margin-bottom: 16px;
-      border-radius: 14px;
-      background: rgba(255, 85, 0, 0.14);
-      border: 1px solid rgba(255, 85, 0, 0.4);
-      font-size: 12.5px;
-      font-weight: 800;
-      color: #FF945E;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
+    /* Кнопки меню */
     .btn-stack {
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
     .btn {
       width: 100%;
       border: none;
-      border-radius: 16px;
-      padding: 15px 18px;
-      font-size: 15px;
+      border-radius: 15px;
+      padding: 13px 14px;
+      font-size: 14px;
       font-weight: 900;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       cursor: pointer;
       transition: transform 0.1s ease, filter 0.15s ease;
     }
 
-    .btn:active {
-      transform: scale(0.96);
-    }
+    .btn:active { transform: scale(0.96); }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--orange) 0%, #FF7A00 100%);
-      color: #FFFFFF;
-      box-shadow: 0 10px 26px var(--orange-glow);
+      background: linear-gradient(135deg, var(--orange) 0%, #ff7a00 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 24px var(--orange-glow);
+    }
+
+    .btn-share {
+      background: linear-gradient(135deg, #0099ff 0%, #0066dd 100%);
+      color: #ffffff;
+      font-size: 12.5px;
+      padding: 12px 12px;
+      box-shadow: 0 6px 18px rgba(0, 136, 255, 0.35);
+    }
+
+    .btn-gold {
+      background: rgba(255, 208, 0, 0.14);
+      border: 1px solid rgba(255, 208, 0, 0.45);
+      color: var(--gold);
+      font-size: 12.5px;
+      padding: 11px 12px;
     }
 
     .btn-secondary {
       background: rgba(255, 255, 255, 0.07);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #D0D7E3;
-      padding: 12px 18px;
-      font-size: 13px;
+      color: #d0d7e3;
+      padding: 11px 12px;
+      font-size: 12.5px;
+    }
+
+    /* ==========================================================================
+       QTE ОВЕРЛЕИ (ШТРАФНЫЕ БЁРПИ И ШТУРМ ЭВЕРЕСТА)
+       ========================================================================== */
+    .qte-overlay {
+      z-index: 30;
+      background: radial-gradient(circle at 50% 45%, rgba(255, 46, 76, 0.28), rgba(11, 14, 20, 0.88) 72%);
+    }
+
+    .qte-overlay.everest-mode {
+      background: radial-gradient(circle at 50% 45%, rgba(255, 208, 0, 0.25), rgba(11, 14, 20, 0.86) 72%);
+    }
+
+    .qte-timer-bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0 8px;
+    }
+
+    .qte-timer-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--danger), var(--orange));
+      transition: width 0.05s linear;
+    }
+
+    .qte-progress-bar {
+      width: 100%;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .qte-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--orange), var(--lime));
+      transition: width 0.08s ease;
+    }
+
+    .qte-tap-btn {
+      width: 100%;
+      height: 92px;
+      border-radius: 22px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      background: linear-gradient(135deg, #ff2e4c, #ff5500);
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 12px 34px rgba(255, 46, 76, 0.55);
+      animation: qtePulse 0.42s infinite alternate;
+    }
+
+    .qte-tap-btn.everest-btn {
+      background: linear-gradient(135deg, #ff7a00, #ffd000);
+      color: #0b0e14;
+      box-shadow: 0 12px 34px rgba(255, 208, 0, 0.5);
+    }
+
+    .qte-tap-btn:active {
+      transform: scale(0.93) !important;
+    }
+
+    @keyframes qtePulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.035); }
+    }
+
+    /* ==========================================================================
+       МОДАЛЬНОЕ ОКНО ТАБЛИЦЫ ЛИДЕРОВ (ТОП-10 УФА)
+       ========================================================================== */
+    .lb-overlay { z-index: 35; }
+
+    .lb-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 12px 0 14px;
+      text-align: left;
+    }
+
+    .lb-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 12.5px;
+    }
+
+    .lb-row.me {
+      background: rgba(255, 85, 0, 0.18);
+      border-color: rgba(255, 85, 0, 0.65);
+      box-shadow: 0 0 14px rgba(255, 85, 0, 0.25);
+    }
+
+    .lb-pos {
+      font-weight: 900;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .lb-row:nth-child(1) .lb-pos { color: var(--gold); }
+    .lb-row:nth-child(2) .lb-pos { color: #d8e1ec; }
+    .lb-row:nth-child(3) .lb-pos { color: #e08b4f; }
+
+    .lb-name {
+      font-weight: 800;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .lb-band-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      display: inline-block;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    .lb-dist {
+      font-weight: 900;
+      color: var(--lime);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lb-score {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      min-width: 48px;
+      text-align: right;
     }
   </style>
 </head>
@@ -526,7 +866,7 @@
   <div id="app">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Верхняя панель HUD -->
+    <!-- Верхний HUD -->
     <div class="hud">
       <div class="hud-left">
         <div class="score-card">
@@ -540,22 +880,38 @@
           </div>
           <div class="score-block">
             <span class="score-label">Рекорд</span>
-            <span class="score-value best" id="hudBest">0</span>
+            <span class="score-value best" id="hudBest">0 м</span>
           </div>
         </div>
-        <div class="rank-pill">
-          <span class="rank-dot"></span>
-          <span id="hudRank">Новичок</span>
+
+        <!-- Шкала хвата (GRIP) -->
+        <div class="grip-box" id="gripBox">
+          <div class="grip-header">
+            <span class="grip-title" id="gripTitle">ХВАТ (GRIP)</span>
+            <span class="grip-pct" id="gripPct">100%</span>
+          </div>
+          <div class="grip-track">
+            <div class="grip-fill" id="gripFill"></div>
+          </div>
+        </div>
+
+        <!-- Локация и Комбо x2 -->
+        <div class="pills-row">
+          <div class="biome-pill">
+            <span class="biome-dot" id="biomeDot"></span>
+            <span id="hudBiome">ЛЕС И ГРЯЗЬ</span>
+          </div>
+          <div class="flow-pill" id="flowPill">🔥 В ПОТОКЕ ×2</div>
         </div>
       </div>
 
-      <button class="sound-btn" id="soundBtn" aria-label="Звук" title="Звук вкл/выкл">
-        <svg id="soundIconOn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="sound-btn" id="soundBtn" type="button" aria-label="Звук" title="Звук вкл/выкл">
+        <svg id="soundIconOn" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
           <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
         </svg>
-        <svg id="soundIconOff" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+        <svg id="soundIconOff" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <line x1="23" y1="9" x2="17" y2="15"></line>
           <line x1="17" y1="9" x2="23" y2="15"></line>
@@ -563,22 +919,22 @@
       </button>
     </div>
 
-    <!-- Уведомление о новом ранге -->
-    <div class="rank-toast" id="rankToast">НОВЫЙ РАНГ: ПОРА НА СТАРТ</div>
+    <!-- Всплывающий тост -->
+    <div class="toast" id="toastEl">НОВЫЙ ЭТАП!</div>
 
-    <!-- Две крупные тактильные кнопки управления -->
+    <!-- Нижняя панель кнопок управления -->
     <div class="controls-bar" id="controlsBar">
       <button class="ctrl-btn slide-btn" id="slideBtn" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"></polyline>
         </svg>
-        ПОЛЗКОМ / ПОДКАТ
+        ПРИСЕД
       </button>
       <button class="ctrl-btn jump-btn" id="jumpBtn" type="button">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="18 15 12 9 6 15"></polyline>
         </svg>
-        ПРЫЖОК ×2
+        ПРЫЖОК
       </button>
     </div>
 
@@ -587,30 +943,82 @@
       <div class="card">
         <div class="brand-tag">ROB ATHLETIC SYSTEM | OCR УФА</div>
         <h1 class="game-title">OCR <span>RACE</span> | УФА</h1>
-        <p class="subtitle">Гонка с препятствиями на выносливость. Пройди грязь, колючку, «Эверест» и рукоход!</p>
+        <p class="greeting">Готов к полосе, <strong id="playerGreeting">Атлет</strong>?</p>
+
+        <!-- Коллекция браслетов -->
+        <div class="wristbands-section">
+          <div class="wb-header">
+            <span>Браслеты OCR</span>
+            <span id="startBestLabel">Рекорд: 0 м</span>
+          </div>
+          <div class="wb-grid" id="startWristbands"></div>
+        </div>
+
+        <!-- Промокод в профиле, если уже открыт -->
+        <div class="promo-box hidden" id="startPromoBox">
+          <div class="promo-tag">🎁 Секретный бонус открыт (500+ м)</div>
+          <div class="promo-code-row">
+            <span class="promo-code">ROBNINJA</span>
+            <button class="promo-copy-btn" data-copy-promo type="button">Копировать</button>
+          </div>
+          <div class="promo-hint">Покажи тренеру или введи в боте ROB ATHLETIC SYSTEM</div>
+        </div>
 
         <div class="rules-box">
-          • <span class="accent-o">Прыжок ×2</span> — стены, грязевые ямы и высокая рампа «Эверест».<br />
-          • <b>Подкат / ползком</b> — колючая проволока и низкая сетка.<br />
-          • <b>Рукоход</b> — проползи снизу или пролети сверху за <b>+30</b>!
-          <div class="loot-row">
-            <span class="loot-badge"><span class="dot-chalk"></span>Магнезия +20</span>
-            <span class="loot-badge"><span class="dot-band"></span>Браслет OCR +50</span>
-          </div>
+          • <span class="o">Прыжок ×2</span> — грязь, брёвна и высокая стена.<br />
+          • <b>Присед / подкат</b> — колючая проволока и низкие барьеры.<br />
+          • <b>Рукоход</b> тратит <b>ХВАТ</b> — собирай мешочки магнезии (+35%)!<br />
+          • Каждые <span class="g">500 м</span> — штурм рампы <b>«ЭВЕРЕСТ»</b> и новая локация!
         </div>
 
         <div class="btn-stack">
           <button class="btn btn-primary" id="startBtn" type="button">НА СТАРТ!</button>
+          <button class="btn btn-gold" id="startLbBtn" type="button">🏆 ТОП-10 УФА</button>
         </div>
       </div>
     </div>
 
-    <!-- Экран финиша / поражения -->
+    <!-- Оверлей: ШТРАФНЫЕ БЁРПИ (Второй шанс) -->
+    <div class="overlay qte-overlay hidden" id="burpeeOverlay">
+      <div class="card">
+        <div class="brand-tag" style="color:#ff5e78; border-color:rgba(255,46,76,0.45); background:rgba(255,46,76,0.12);">ВТОРОЙ ШАНС • 1 РАЗ ЗА ЗАБЕГ</div>
+        <h2 class="game-title" style="font-size:24px;">ШТРАФНЫЕ <span>БЁРПИ!</span></h2>
+        <p class="greeting" style="margin-bottom:4px;">Спаси забег! Сделай 10 бёрпи за <strong id="burpeeTimeLeft">3.5с</strong></p>
+
+        <div class="qte-timer-bar">
+          <div class="qte-timer-fill" id="burpeeTimerFill"></div>
+        </div>
+        <div class="qte-progress-bar">
+          <div class="qte-progress-fill" id="burpeeProgressFill"></div>
+        </div>
+
+        <button class="qte-tap-btn" id="burpeeTapBtn" type="button">БЁРПИ! (0/10)</button>
+      </div>
+    </div>
+
+    <!-- Оверлей: ШТУРМ ЭВЕРЕСТА (Каждые 500м) -->
+    <div class="overlay qte-overlay everest-mode hidden" id="everestOverlay">
+      <div class="card">
+        <div class="brand-tag" style="color:var(--gold); border-color:rgba(255,208,0,0.45); background:rgba(255,208,0,0.12);">БОСС-РАМПА • <span id="everestMark">500 М</span></div>
+        <h2 class="game-title" style="font-size:24px;">ШТУРМ <span>ЭВЕРЕСТА!</span></h2>
+        <p class="greeting" style="margin-bottom:4px;">Жми быстрее! Осталось <strong id="everestTimeLeft">3.0с</strong></p>
+
+        <div class="qte-timer-bar">
+          <div class="qte-timer-fill" id="everestTimerFill" style="background:linear-gradient(90deg, var(--orange), var(--gold));"></div>
+        </div>
+        <div class="qte-progress-bar">
+          <div class="qte-progress-fill" id="everestProgressFill"></div>
+        </div>
+
+        <button class="qte-tap-btn everest-btn" id="everestTapBtn" type="button">ЗАЛЕЗТЬ! (0/12)</button>
+      </div>
+    </div>
+
+    <!-- Экран финиша / Game Over -->
     <div class="overlay hidden" id="gameOverOverlay">
       <div class="card">
         <div class="brand-tag">ROB ATHLETIC SYSTEM | OCR УФА</div>
-        <h2 class="game-title" style="font-size: 25px;">ЗАБЕГ <span>ЗАВЕРШЁН</span></h2>
-
+        <h2 class="game-title" style="font-size:24px;">ЗАБЕГ <span>ЗАВЕРШЁН</span></h2>
         <div class="new-record-badge hidden" id="newRecordBadge">★ НОВЫЙ РЕКОРД ТРАССЫ ★</div>
 
         <div class="stats-grid">
@@ -623,24 +1031,55 @@
             <div class="stat-tile-value" id="finalScore">0</div>
           </div>
           <div class="stat-tile">
-            <div class="stat-tile-label">Рекорд (м)</div>
+            <div class="stat-tile-label">Лучшая дист.</div>
             <div class="stat-tile-value lime" id="finalBestDist">0 м</div>
           </div>
           <div class="stat-tile">
-            <div class="stat-tile-label">Рекорд (очки)</div>
-            <div class="stat-tile-value lime" id="finalBestScore">0</div>
+            <div class="stat-tile-label">Макс. комбо</div>
+            <div class="stat-tile-value gold" id="finalCombo">0</div>
           </div>
         </div>
 
-        <div class="achieved-rank">
-          <span class="rank-dot"></span>
-          <span id="finalRank">Ранг: Новичок</span>
+        <!-- Коллекция браслетов -->
+        <div class="wristbands-section">
+          <div class="wb-header">
+            <span>Твои браслеты</span>
+            <span id="finalRankName">Новичок</span>
+          </div>
+          <div class="wb-grid" id="endWristbands"></div>
+        </div>
+
+        <!-- Секретный промокод (открывается при 500+ м) -->
+        <div class="promo-box hidden" id="endPromoBox">
+          <div class="promo-tag">🎁 ПРОМОКОД ЗА ЗЕЛЁНЫЙ БРАСЛЕТ (500+ м)</div>
+          <div class="promo-code-row">
+            <span class="promo-code">ROBNINJA</span>
+            <button class="promo-copy-btn" data-copy-promo type="button">Скопировать</button>
+          </div>
+          <div class="promo-hint">Покажи тренеру или введи в боте ROB ATHLETIC SYSTEM</div>
         </div>
 
         <div class="btn-stack">
           <button class="btn btn-primary" id="restartBtn" type="button">ЕЩЁ ЗАБЕГ</button>
-          <button class="btn btn-secondary" id="closeBtn" type="button">ЗАКРЫТЬ</button>
+          <button class="btn btn-share" id="shareBtn" type="button">⚡ БРОСИТЬ ВЫЗОВ ДРУГУ</button>
+          <div class="btn-row">
+            <button class="btn btn-gold" id="endLbBtn" type="button">🏆 ТОП-10</button>
+            <button class="btn btn-secondary" id="closeBtn" type="button">ЗАКРЫТЬ</button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно таблицы лидеров -->
+    <div class="overlay lb-overlay hidden" id="lbOverlay">
+      <div class="card">
+        <div class="brand-tag">КОМАНДА ROB ATHLETIC SYSTEM</div>
+        <h2 class="game-title" style="font-size:23px;">🏆 ТОП-10 <span>УФА</span></h2>
+        <p class="greeting" style="margin-bottom:6px;">Лучшие результаты на полосе препятствий</p>
+
+        <div class="lb-list" id="lbList"></div>
+
+        <button class="btn btn-primary" id="lbCloseBtn" type="button">НАЗАД</button>
       </div>
     </div>
   </div>
@@ -650,9 +1089,19 @@
       'use strict';
 
       /* ========================================================================
-         1. TELEGRAM WEB APP ИНТЕГРАЦИЯ
+         НАСТРОЙКА ВНЕШНЕГО ВЕБХУКА ДЛЯ ГЛОБАЛЬНОЙ ТАБЛИЦЫ ЛИДЕРОВ (NOCODB / API)
+         Вставь сюда URL вебхука (например, Make / n8n / NocoDB API), чтобы
+         синхронизировать рекорды игроков. Если строка пустая — таблица работает
+         локально с предзаполненным списком команды без ошибок.
+         ======================================================================== */
+      const LEADERBOARD_WEBHOOK_URL = "";
+      const SHARE_GAME_URL = "https://robertbikmuh.github.io/ocr-ninja-run/";
+
+      /* ========================================================================
+         1. ИНТЕГРАЦИЯ TELEGRAM MINI APP
          ======================================================================== */
       const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+      let playerName = 'Атлет';
 
       function initTelegram() {
         if (!tg) return;
@@ -662,11 +1111,10 @@
           if (typeof tg.disableVerticalSwipes === 'function') {
             tg.disableVerticalSwipes();
           }
-          if (typeof tg.setHeaderColor === 'function') {
-            tg.setHeaderColor('#0A0D12');
-          }
-          if (typeof tg.setBackgroundColor === 'function') {
-            tg.setBackgroundColor('#0A0D12');
+          if (typeof tg.setHeaderColor === 'function') tg.setHeaderColor('#0b0e14');
+          if (typeof tg.setBackgroundColor === 'function') tg.setBackgroundColor('#0b0e14');
+          if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) {
+            playerName = String(tg.initDataUnsafe.user.first_name).trim() || 'Атлет';
           }
         } catch (err) {}
       }
@@ -682,13 +1130,32 @@
       function hapticNotify(type) {
         try {
           if (tg && tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') {
-            tg.HapticFeedback.notificationOccurred(type || 'error');
+            tg.HapticFeedback.notificationOccurred(type || 'success');
           }
         } catch (e) {}
       }
 
+      /* Надёжное копирование в буфер (совместимо с iFrame и Telegram WebView) */
+      function copyTextToClipboard(text) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          ta.style.top = '0';
+          document.body.appendChild(ta);
+          ta.focus();
+          ta.select();
+          const ok = document.execCommand('copy');
+          document.body.removeChild(ta);
+          return ok;
+        } catch (e) {
+          return false;
+        }
+      }
+
       /* ========================================================================
-         2. ЗВУКИ НА WEB AUDIO API (БЕЗ ВНЕШНИХ ФАЙЛОВ)
+         2. СИНТЕЗАТОР ЗВУКОВ (WEB AUDIO API)
          ======================================================================== */
       const Sound = {
         ctx: null,
@@ -697,8 +1164,8 @@
         init() {
           if (this.ctx) return;
           try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) this.ctx = new AudioCtx();
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) this.ctx = new AC();
           } catch (e) {}
         },
 
@@ -721,7 +1188,7 @@
             osc.frequency.setValueAtTime(f1, now);
             osc.frequency.exponentialRampToValueAtTime(Math.max(25, f2), now + dur);
 
-            gain.gain.setValueAtTime(vol || 0.13, now);
+            gain.gain.setValueAtTime(vol || 0.12, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
             osc.connect(gain);
@@ -733,80 +1200,117 @@
 
         jump() { this.tone(240, 560, 0.12, 'triangle', 0.13); },
         doubleJump() {
-          this.tone(360, 840, 0.14, 'sine', 0.13);
-          setTimeout(() => this.tone(540, 1080, 0.1, 'triangle', 0.08), 40);
+          this.tone(360, 820, 0.13, 'sine', 0.13);
+          setTimeout(() => this.tone(540, 1080, 0.1, 'triangle', 0.09), 38);
         },
-        slide() { this.tone(175, 72, 0.14, 'sawtooth', 0.065); },
+        slide() { this.tone(175, 70, 0.14, 'sawtooth', 0.065); },
         chalk() {
-          this.tone(580, 900, 0.08, 'sine', 0.11);
-          setTimeout(() => this.tone(860, 1280, 0.1, 'triangle', 0.1), 50);
+          this.tone(580, 920, 0.08, 'sine', 0.11);
+          setTimeout(() => this.tone(880, 1320, 0.1, 'triangle', 0.1), 45);
         },
-        wristband() {
-          this.tone(720, 1080, 0.09, 'sine', 0.13);
-          setTimeout(() => this.tone(980, 1460, 0.11, 'triangle', 0.12), 60);
-          setTimeout(() => this.tone(1300, 1940, 0.15, 'sine', 0.11), 120);
+        star() {
+          this.tone(720, 1100, 0.09, 'sine', 0.13);
+          setTimeout(() => this.tone(1040, 1560, 0.12, 'triangle', 0.12), 55);
+          setTimeout(() => this.tone(1380, 2040, 0.14, 'sine', 0.1), 115);
         },
-        monkeyBonus() {
-          this.tone(520, 780, 0.1, 'triangle', 0.12);
-          setTimeout(() => this.tone(780, 1180, 0.14, 'sine', 0.12), 70);
+        tapClick(pitch) { this.tone(pitch || 420, (pitch || 420) * 1.45, 0.07, 'triangle', 0.12); },
+        flowOn() {
+          this.tone(440, 660, 0.1, 'triangle', 0.12);
+          setTimeout(() => this.tone(660, 990, 0.13, 'sine', 0.13), 75);
+          setTimeout(() => this.tone(990, 1480, 0.18, 'sine', 0.13), 150);
         },
-        rankUp() {
-          this.tone(440, 660, 0.11, 'triangle', 0.11);
-          setTimeout(() => this.tone(660, 880, 0.13, 'triangle', 0.11), 85);
-          setTimeout(() => this.tone(880, 1320, 0.2, 'sine', 0.12), 170);
+        everestWin() {
+          [523, 659, 784, 1046].forEach((f, idx) => {
+            setTimeout(() => this.tone(f, f * 1.15, 0.16, 'triangle', 0.14), idx * 75);
+          });
         },
+        noGrip() { this.tone(150, 105, 0.14, 'sawtooth', 0.09); },
         crash() {
-          this.tone(160, 36, 0.28, 'sawtooth', 0.2);
-          this.tone(105, 30, 0.3, 'square', 0.1);
+          this.tone(165, 36, 0.28, 'sawtooth', 0.2);
+          this.tone(100, 28, 0.3, 'square', 0.1);
         }
       };
 
       /* ========================================================================
-         3. РАНГИ, ТИРЫ БРАСЛЕТОВ И LOCALSTORAGE
+         3. БРАСЛЕТЫ OCR, БИОМЫ, РЕКОРДЫ И ЛИДЕРБОРД
          ======================================================================== */
-      const RANKS = [
-        { min: 0,    name: 'Новичок' },
-        { min: 350,  name: 'Пора на старт' },
-        { min: 850,  name: 'Готов к большему' },
-        { min: 1600, name: 'КМС OCR' },
-        { min: 2800, name: 'Суперниндзя' }
+      const WRISTBANDS = [
+        { minDist: 0,    name: 'Новичок',     color: '#f4f7fb', glow: 'rgba(244,247,251,0.7)' },
+        { minDist: 250,  name: 'Боец',        color: '#ff5500', glow: 'rgba(255,85,0,0.85)' },
+        { minDist: 500,  name: 'Атлет OCR',   color: '#22e568', glow: 'rgba(34,229,104,0.85)' },
+        { minDist: 1000, name: 'Профи',       color: '#1e90ff', glow: 'rgba(30,144,255,0.85)' },
+        { minDist: 1500, name: 'Суперниндзя', color: '#1b1f29', glow: 'rgba(255,208,0,0.9)', rim: '#ffd000' }
       ];
 
-      // Тиры силиконовых браслетов OCR Уфа
-      const WRISTBAND_TIERS = [
-        { name: 'Белый',     color: '#F4F6FA', glow: 'rgba(244, 246, 250, 0.85)' },
-        { name: 'Оранжевый', color: '#FF5500', glow: 'rgba(255, 85, 0, 0.9)' },
-        { name: 'Зелёный',   color: '#22E568', glow: 'rgba(34, 229, 104, 0.85)' },
-        { name: 'Синий',     color: '#1E90FF', glow: 'rgba(30, 144, 255, 0.9)' },
-        { name: 'Чёрный',    color: '#181C24', glow: 'rgba(184, 255, 0, 0.9)', stroke: '#B8FF00' }
+      const BIOMES = [
+        { name: 'ЛЕС И ГРЯЗЬ', dot: '#ff5500' },
+        { name: 'НЕОНОВЫЙ НИНДЗЯ-ЗАЛ ROB', dot: '#b8ff00' },
+        { name: 'ФИНАЛЬНАЯ АРЕНА СУПЕРНИНДЗЯ', dot: '#ffd000' }
       ];
 
-      function getRank(sc) {
-        let r = RANKS[0];
-        for (let i = 0; i < RANKS.length; i++) {
-          if (sc >= RANKS[i].min) r = RANKS[i];
+      const DEFAULT_LEADERBOARD = [
+        { name: 'Роберт',  dist: 1740, score: 4920 },
+        { name: 'Артём',   dist: 1420, score: 3890 },
+        { name: 'Алина',   dist: 1180, score: 3210 },
+        { name: 'Тимур',   dist: 960,  score: 2540 },
+        { name: 'Диана',   dist: 790,  score: 2110 },
+        { name: 'Ильназ',  dist: 640,  score: 1680 },
+        { name: 'Камилла', dist: 520,  score: 1390 },
+        { name: 'Марат',   dist: 410,  score: 1040 },
+        { name: 'Руслан',  dist: 310,  score: 790 },
+        { name: 'Эльвина', dist: 190,  score: 480 }
+      ];
+
+      function getWristbandByDist(dist) {
+        let w = WRISTBANDS[0];
+        for (let i = 0; i < WRISTBANDS.length; i++) {
+          if (dist >= WRISTBANDS[i].minDist) w = WRISTBANDS[i];
         }
-        return r;
+        return w;
       }
 
-      const KEY_SCORE = 'rob_ocr_race_best_score_v1';
-      const KEY_DIST = 'rob_ocr_race_best_dist_v1';
-      let bestScore = 0;
+      const LS_BEST_DIST = 'rob_ocr_best_dist_v2';
+      const LS_BEST_SCORE = 'rob_ocr_best_score_v2';
       let bestDist = 0;
+      let bestScore = 0;
+
       try {
-        bestScore = parseInt(localStorage.getItem(KEY_SCORE) || '0', 10) || 0;
-        bestDist = parseInt(localStorage.getItem(KEY_DIST) || '0', 10) || 0;
+        bestDist = parseInt(localStorage.getItem(LS_BEST_DIST) || '0', 10) || 0;
+        bestScore = parseInt(localStorage.getItem(LS_BEST_SCORE) || '0', 10) || 0;
       } catch (e) {}
 
-      function saveRecords(sc, dist) {
-        if (sc > bestScore) {
-          bestScore = sc;
-          try { localStorage.setItem(KEY_SCORE, String(bestScore)); } catch (e) {}
-        }
+      function saveBest(dist, sc) {
+        let updated = false;
         if (dist > bestDist) {
           bestDist = dist;
-          try { localStorage.setItem(KEY_DIST, String(bestDist)); } catch (e) {}
+          updated = true;
+          try { localStorage.setItem(LS_BEST_DIST, String(bestDist)); } catch (e) {}
         }
+        if (sc > bestScore) {
+          bestScore = sc;
+          updated = true;
+          try { localStorage.setItem(LS_BEST_SCORE, String(bestScore)); } catch (e) {}
+        }
+        if (updated && LEADERBOARD_WEBHOOK_URL) {
+          syncLeaderboardWebhook(playerName, bestDist, bestScore);
+        }
+      }
+
+      function syncLeaderboardWebhook(name, dist, sc) {
+        if (!LEADERBOARD_WEBHOOK_URL) return;
+        try {
+          fetch(LEADERBOARD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              player: name,
+              distance: dist,
+              score: sc,
+              telegram_id: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : null,
+              timestamp: new Date().toISOString()
+            })
+          }).catch(() => {});
+        } catch (e) {}
       }
 
       /* ========================================================================
@@ -818,31 +1322,171 @@
       const hudDist = document.getElementById('hudDist');
       const hudScore = document.getElementById('hudScore');
       const hudBest = document.getElementById('hudBest');
-      const hudRank = document.getElementById('hudRank');
-      const rankToast = document.getElementById('rankToast');
+      const gripBox = document.getElementById('gripBox');
+      const gripTitle = document.getElementById('gripTitle');
+      const gripPct = document.getElementById('gripPct');
+      const gripFill = document.getElementById('gripFill');
+      const biomeDot = document.getElementById('biomeDot');
+      const hudBiome = document.getElementById('hudBiome');
+      const flowPill = document.getElementById('flowPill');
+      const toastEl = document.getElementById('toastEl');
+
       const controlsBar = document.getElementById('controlsBar');
       const slideBtn = document.getElementById('slideBtn');
       const jumpBtn = document.getElementById('jumpBtn');
 
       const startOverlay = document.getElementById('startOverlay');
       const gameOverOverlay = document.getElementById('gameOverOverlay');
+      const burpeeOverlay = document.getElementById('burpeeOverlay');
+      const everestOverlay = document.getElementById('everestOverlay');
+      const lbOverlay = document.getElementById('lbOverlay');
+
+      const playerGreeting = document.getElementById('playerGreeting');
+      const startBestLabel = document.getElementById('startBestLabel');
+      const startWristbands = document.getElementById('startWristbands');
+      const endWristbands = document.getElementById('endWristbands');
+      const startPromoBox = document.getElementById('startPromoBox');
+      const endPromoBox = document.getElementById('endPromoBox');
+
       const startBtn = document.getElementById('startBtn');
       const restartBtn = document.getElementById('restartBtn');
+      const shareBtn = document.getElementById('shareBtn');
       const closeBtn = document.getElementById('closeBtn');
+      const startLbBtn = document.getElementById('startLbBtn');
+      const endLbBtn = document.getElementById('endLbBtn');
+      const lbCloseBtn = document.getElementById('lbCloseBtn');
+      const lbList = document.getElementById('lbList');
+
+      const burpeeTimeLeft = document.getElementById('burpeeTimeLeft');
+      const burpeeTimerFill = document.getElementById('burpeeTimerFill');
+      const burpeeProgressFill = document.getElementById('burpeeProgressFill');
+      const burpeeTapBtn = document.getElementById('burpeeTapBtn');
+
+      const everestMark = document.getElementById('everestMark');
+      const everestTimeLeft = document.getElementById('everestTimeLeft');
+      const everestTimerFill = document.getElementById('everestTimerFill');
+      const everestProgressFill = document.getElementById('everestProgressFill');
+      const everestTapBtn = document.getElementById('everestTapBtn');
 
       const finalDistEl = document.getElementById('finalDist');
       const finalScoreEl = document.getElementById('finalScore');
       const finalBestDistEl = document.getElementById('finalBestDist');
-      const finalBestScoreEl = document.getElementById('finalBestScore');
-      const finalRankEl = document.getElementById('finalRank');
+      const finalComboEl = document.getElementById('finalCombo');
+      const finalRankName = document.getElementById('finalRankName');
       const newRecordBadge = document.getElementById('newRecordBadge');
 
       const soundBtn = document.getElementById('soundBtn');
       const soundIconOn = document.getElementById('soundIconOn');
       const soundIconOff = document.getElementById('soundIconOff');
 
+      /* Вспомогательная функция отрисовки скруглённого прямоугольника (для всех WebView) */
+      function drawRoundedRect(x, y, w, h, r) {
+        const rad = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rad, y);
+        ctx.arcTo(x + w, y, x + w, y + h, rad);
+        ctx.arcTo(x + w, y + h, x, y + h, rad);
+        ctx.arcTo(x, y + h, x, y, rad);
+        ctx.arcTo(x, y, x + w, y, rad);
+        ctx.closePath();
+      }
+
       /* ========================================================================
-         5. СОСТОЯНИЕ ИГРЫ И МАСШТАБИРОВАНИЕ
+         5. ОТРИСОВКА UI КОЛЛЕКЦИИ БРАСЛЕТОВ, ТОСТОВ И ЛИДЕРБОРДА
+         ======================================================================== */
+      let toastTimer = null;
+      function showToast(msg, variant) {
+        toastEl.textContent = msg;
+        toastEl.className = 'toast show' + (variant ? ' ' + variant : '');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2100);
+      }
+
+      function renderWristbandGrid(container, dist) {
+        container.innerHTML = '';
+        for (let i = 0; i < WRISTBANDS.length; i++) {
+          const wb = WRISTBANDS[i];
+          const unlocked = dist >= wb.minDist;
+          const item = document.createElement('div');
+          item.className = 'wb-item' + (unlocked ? ' unlocked' : '');
+
+          const borderCol = wb.rim ? wb.rim : wb.color;
+          const bgCol = wb.rim ? '#151922' : 'rgba(11,14,20,0.88)';
+          item.innerHTML = `
+            <div class="wb-ring" style="border-color:${unlocked ? borderCol : '#434c5e'}; background:${bgCol}; --ring-glow:${wb.glow};">
+              ${unlocked ? '★' : '🔒'}
+            </div>
+            <div class="wb-label">${wb.name}</div>
+            <div class="wb-dist">${wb.minDist}м</div>
+          `;
+          container.appendChild(item);
+        }
+      }
+
+      function refreshProfileUI() {
+        playerGreeting.textContent = playerName;
+        startBestLabel.textContent = 'Рекорд: ' + bestDist + ' м';
+        renderWristbandGrid(startWristbands, bestDist);
+        renderWristbandGrid(endWristbands, bestDist);
+        const promoUnlocked = bestDist >= 500;
+        startPromoBox.classList.toggle('hidden', !promoUnlocked);
+        endPromoBox.classList.toggle('hidden', !promoUnlocked);
+      }
+
+      function openLeaderboard() {
+        hapticImpact('light');
+        const list = DEFAULT_LEADERBOARD.map(item => ({ ...item, isMe: false }));
+        const existingIdx = list.findIndex(item => item.name.toLowerCase() === playerName.toLowerCase());
+        const myEntry = {
+          name: playerName + ' (Вы)',
+          dist: bestDist,
+          score: bestScore,
+          isMe: true
+        };
+
+        if (existingIdx >= 0 && bestDist > list[existingIdx].dist) {
+          list[existingIdx] = myEntry;
+        } else {
+          list.push(myEntry);
+        }
+
+        list.sort((a, b) => (b.dist - a.dist) || (b.score - a.score));
+        const top10 = list.slice(0, 10);
+        const myRank = list.findIndex(x => x.isMe) + 1;
+
+        lbList.innerHTML = '';
+        top10.forEach((row, idx) => {
+          const wb = getWristbandByDist(row.dist);
+          const el = document.createElement('div');
+          el.className = 'lb-row' + (row.isMe ? ' me' : '');
+          el.innerHTML = `
+            <span class="lb-pos">${idx + 1}</span>
+            <span class="lb-name"><span class="lb-band-dot" style="border-color:${wb.rim || wb.color}; background:${wb.color};"></span>${row.name}</span>
+            <span class="lb-dist">${row.dist} м</span>
+            <span class="lb-score">${row.score} оч.</span>
+          `;
+          lbList.appendChild(el);
+        });
+
+        // Если игрок ниже 10-го места — показываем его строкой внизу
+        if (myRank > 10) {
+          const wb = getWristbandByDist(bestDist);
+          const el = document.createElement('div');
+          el.className = 'lb-row me';
+          el.innerHTML = `
+            <span class="lb-pos">${myRank}</span>
+            <span class="lb-name"><span class="lb-band-dot" style="border-color:${wb.rim || wb.color}; background:${wb.color};"></span>${playerName} (Вы)</span>
+            <span class="lb-dist">${bestDist} м</span>
+            <span class="lb-score">${bestScore} оч.</span>
+          `;
+          lbList.appendChild(el);
+        }
+
+        lbOverlay.classList.remove('hidden');
+      }
+
+      /* ========================================================================
+         6. СОСТОЯНИЕ ИГРЫ И ФИЗИЧЕСКИЕ ПАРАМЕТРЫ
          ======================================================================== */
       let W = window.innerWidth;
       let H = window.innerHeight;
@@ -850,13 +1494,26 @@
       let S = 1;
       let groundY = H * 0.72;
 
-      let state = 'start'; // 'start' | 'playing' | 'gameover'
+      // 'start' | 'playing' | 'burpee' | 'everest' | 'gameover'
+      let state = 'start';
       let distanceMeters = 0;
       let bonusPoints = 0;
       let score = 0;
-      let currentRankName = RANKS[0].name;
-      let rankToastTimer = null;
-      let wristbandsCollected = 0;
+      let grip = 100;
+      let combo = 0;
+      let maxCombo = 0;
+      let inFlow = false;
+      let burpeeUsed = false;
+      let nextEverestDist = 500;
+      let biomeIndex = 0;
+
+      // QTE состояние
+      const qte = {
+        timeLeft: 0,
+        duration: 3.5,
+        taps: 0,
+        target: 10
+      };
 
       let baseSpeed = 355;
       let speed = baseSpeed;
@@ -869,6 +1526,7 @@
       let collectibles = [];
       let particles = [];
       let popups = [];
+      let arenaConfetti = [];
       let spawnTimer = 0;
 
       let bgFar = 0;
@@ -886,6 +1544,8 @@
         jumpsUsed: 0,
         isSliding: false,
         slideTimer: 0,
+        isHanging: false,
+        invulnTimer: 0,
         flipAngle: 0,
         isFlipping: false,
         runCycle: 0,
@@ -904,29 +1564,49 @@
         canvas.style.height = H + 'px';
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        S = Math.max(0.75, Math.min(1.16, Math.min(W / 400, H / 680)));
-        // Оставляем место внизу под две крупные кнопки управления
+        S = Math.max(0.75, Math.min(1.15, Math.min(W / 400, H / 680)));
         groundY = Math.floor(H * 0.72);
 
-        player.x = Math.max(56, Math.min(W * 0.21, 145));
+        player.x = Math.max(54, Math.min(W * 0.21, 140));
         player.width = 32 * S;
         player.height = 66 * S;
         player.slideHeight = 30 * S;
 
-        if (player.onGround || state !== 'playing') {
+        if (player.onGround || state === 'start') {
           player.y = groundY;
         }
       }
 
+      function initArenaConfetti() {
+        arenaConfetti = [];
+        const colors = ['#ffd000', '#ff5500', '#b8ff00', '#ffffff'];
+        for (let i = 0; i < 36; i++) {
+          arenaConfetti.push({
+            x: Math.random() * W,
+            y: Math.random() * groundY,
+            vy: (18 + Math.random() * 35) * S,
+            vx: (-25 - Math.random() * 45) * S,
+            size: (2.5 + Math.random() * 3.5) * S,
+            color: colors[i % colors.length],
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
       /* ========================================================================
-         6. СБРОС, СТАРТ, GAME OVER И ДЕЙСТВИЯ ИГРОКА
+         7. СБРОС, СТАРТ, QTE БЁРПИ, QTE ЭВЕРЕСТ, GAME OVER
          ======================================================================== */
       function resetGame() {
         distanceMeters = 0;
         bonusPoints = 0;
         score = 0;
-        wristbandsCollected = 0;
-        currentRankName = RANKS[0].name;
+        grip = 100;
+        combo = 0;
+        maxCombo = 0;
+        inFlow = false;
+        burpeeUsed = false;
+        nextEverestDist = 500;
+        biomeIndex = 0;
         gameTime = 0;
         baseSpeed = 355 * S;
         speed = baseSpeed;
@@ -945,6 +1625,8 @@
         player.jumpsUsed = 0;
         player.isSliding = false;
         player.slideTimer = 0;
+        player.isHanging = false;
+        player.invulnTimer = 0;
         player.flipAngle = 0;
         player.isFlipping = false;
         player.runCycle = 0;
@@ -962,13 +1644,156 @@
         state = 'playing';
         startOverlay.classList.add('hidden');
         gameOverOverlay.classList.add('hidden');
+        burpeeOverlay.classList.add('hidden');
+        everestOverlay.classList.add('hidden');
+        lbOverlay.classList.add('hidden');
         controlsBar.classList.add('visible');
         hapticImpact('medium');
       }
 
-      function triggerGameOver(isMudSplash) {
+      function handleCollision(isMud) {
+        if (player.invulnTimer > 0) return;
+
+        // Сброс комбо
+        combo = 0;
+        inFlow = false;
+
+        // Первый раз за забег — Штрафные Бёрпи!
+        if (!burpeeUsed) {
+          burpeeUsed = true;
+          state = 'burpee';
+          controlsBar.classList.remove('visible');
+          shakeTime = 0.25;
+          shakeIntensity = 9 * S;
+          hitFlash = 0.55;
+          Sound.crash();
+          hapticNotify('warning');
+
+          qte.duration = 3.5;
+          qte.timeLeft = 3.5;
+          qte.taps = 0;
+          qte.target = 10;
+          updateBurpeeUI();
+          burpeeOverlay.classList.remove('hidden');
+          return;
+        }
+
+        triggerGameOver(isMud);
+      }
+
+      function updateBurpeeUI() {
+        burpeeTimeLeft.textContent = Math.max(0, qte.timeLeft).toFixed(1) + 'с';
+        burpeeTimerFill.style.width = Math.max(0, (qte.timeLeft / qte.duration) * 100) + '%';
+        burpeeProgressFill.style.width = Math.min(100, (qte.taps / qte.target) * 100) + '%';
+        burpeeTapBtn.textContent = `БЁРПИ! (${qte.taps}/${qte.target})`;
+      }
+
+      function tapBurpee() {
+        if (state !== 'burpee') return;
+        qte.taps++;
+        Sound.tapClick(360 + qte.taps * 35);
+        hapticImpact('light');
+        updateBurpeeUI();
+
+        if (qte.taps >= qte.target) {
+          // Спас забег!
+          burpeeOverlay.classList.add('hidden');
+          state = 'playing';
+          controlsBar.classList.add('visible');
+          player.invulnTimer = 2.0;
+          player.y = groundY;
+          player.vy = 0;
+          player.onGround = true;
+          player.isHanging = false;
+          grip = Math.min(100, grip + 50);
+          // Убираем ближайшие опасные препятствия, чтобы игрок не врезался в ту же секунду
+          obstacles = obstacles.filter(o => o.x > player.x + 170 * S);
+          Sound.flowOn();
+          hapticNotify('success');
+          spawnParticles(player.x, player.y - 30 * S, '#b8ff00', 22, 1.1);
+          showToast('БЁРПИ ЗАСЧИТАНЫ! +50% ХВАТА', 'lime');
+          updateHUD();
+        }
+      }
+
+      function startEverestQTE() {
+        state = 'everest';
+        controlsBar.classList.remove('visible');
+        player.isHanging = false;
+        player.isSliding = false;
+        obstacles = []; // Чистим трассу под штурм
+
+        qte.duration = 3.0;
+        qte.timeLeft = 3.0;
+        qte.taps = 0;
+        qte.target = 12;
+
+        everestMark.textContent = nextEverestDist + ' М';
+        updateEverestUI();
+        everestOverlay.classList.remove('hidden');
+        hapticImpact('heavy');
+      }
+
+      function updateEverestUI() {
+        everestTimeLeft.textContent = Math.max(0, qte.timeLeft).toFixed(1) + 'с';
+        everestTimerFill.style.width = Math.max(0, (qte.timeLeft / qte.duration) * 100) + '%';
+        everestProgressFill.style.width = Math.min(100, (qte.taps / qte.target) * 100) + '%';
+        everestTapBtn.textContent = `ЗАЛЕЗТЬ! (${qte.taps}/${qte.target})`;
+      }
+
+      function tapEverest() {
+        if (state !== 'everest') return;
+        qte.taps++;
+        Sound.tapClick(440 + qte.taps * 45);
+        hapticImpact('medium');
+        updateEverestUI();
+
+        if (qte.taps >= qte.target) {
+          finishEverest(true);
+        }
+      }
+
+      function finishEverest(success) {
+        everestOverlay.classList.add('hidden');
+        state = 'playing';
+        controlsBar.classList.add('visible');
+        player.y = groundY;
+        player.vy = 0;
+        player.onGround = true;
+        player.invulnTimer = 2.0;
+        spawnTimer = 1.15;
+
+        // Переходим к следующему этапу
+        nextEverestDist += 500;
+        const newBiome = Math.min(2, Math.floor(distanceMeters / 500));
+        biomeIndex = newBiome;
+
+        if (success) {
+          const pts = inFlow ? 600 : 300;
+          bonusPoints += pts;
+          grip = 100;
+          Sound.everestWin();
+          hapticNotify('success');
+          spawnParticles(W * 0.5, H * 0.35, '#ffd000', 30, 1.4);
+          spawnParticles(W * 0.5, H * 0.35, '#ff5500', 22, 1.2);
+          spawnParticles(W * 0.5, H * 0.35, '#b8ff00', 22, 1.2);
+          showToast(`ЭВЕРЕСТ ВЗЯТ! +${pts} • ${BIOMES[biomeIndex].name}`, 'gold');
+        } else {
+          combo = 0;
+          inFlow = false;
+          grip = Math.max(grip, 40);
+          Sound.noGrip();
+          hapticNotify('warning');
+          showToast(`ПОЧТИ ВЗЯЛ! ЭТАП: ${BIOMES[biomeIndex].name}`);
+        }
+        updateHUD();
+      }
+
+      function triggerGameOver(isMud) {
         state = 'gameover';
         controlsBar.classList.remove('visible');
+        burpeeOverlay.classList.add('hidden');
+        everestOverlay.classList.add('hidden');
         shakeTime = 0.35;
         shakeIntensity = 12 * S;
         hitFlash = 0.65;
@@ -976,32 +1801,34 @@
         Sound.crash();
         hapticNotify('error');
 
-        const splashColor = isMudSplash ? '#6E4C32' : '#FF5500';
-        spawnParticles(player.x + 10 * S, player.y - 24 * S, splashColor, 22, 1.25);
-        spawnParticles(player.x + 10 * S, player.y - 24 * S, '#B8FF00', 10, 1.0);
+        spawnParticles(player.x + 10 * S, player.y - 24 * S, isMud ? '#6e4c32' : '#ff5500', 24, 1.25);
+        spawnParticles(player.x + 10 * S, player.y - 24 * S, '#b8ff00', 10, 1.0);
 
-        const finalSc = Math.floor(score);
         const finalM = Math.floor(distanceMeters);
-        const isNewRecord = (finalSc > bestScore || finalM > bestDist) && finalSc > 0;
-        saveRecords(finalSc, finalM);
+        const finalSc = Math.floor(score);
+        const isNewRecord = (finalM > bestDist || finalSc > bestScore) && finalM > 0;
+        saveBest(finalM, finalSc);
 
-        const rankObj = getRank(finalSc);
         finalDistEl.textContent = finalM + ' м';
         finalScoreEl.textContent = finalSc;
         finalBestDistEl.textContent = bestDist + ' м';
-        finalBestScoreEl.textContent = bestScore;
-        finalRankEl.textContent = 'Ранг: ' + rankObj.name;
-        hudBest.textContent = bestScore;
-
+        finalComboEl.textContent = maxCombo;
+        finalRankName.textContent = getWristbandByDist(bestDist).name;
         newRecordBadge.classList.toggle('hidden', !isNewRecord);
+
+        refreshProfileUI();
+        updateHUD();
 
         setTimeout(() => {
           if (state === 'gameover') {
             gameOverOverlay.classList.remove('hidden');
           }
-        }, 380);
+        }, 360);
       }
 
+      /* ========================================================================
+         8. ДЕЙСТВИЯ АТЛЕТА (ПРЫЖОК, ДВОЙНОЙ ПРЫЖОК, ПОДКАТ)
+         ======================================================================== */
       function doJump() {
         if (state !== 'playing') return;
 
@@ -1009,33 +1836,45 @@
           player.isSliding = false;
           player.slideTimer = 0;
         }
+        if (player.isHanging) {
+          player.isHanging = false;
+        }
 
         jumpBtn.classList.add('active');
-        setTimeout(() => jumpBtn.classList.remove('active'), 130);
+        setTimeout(() => jumpBtn.classList.remove('active'), 120);
 
         if (player.onGround) {
-          player.vy = -785 * S;
+          player.vy = -790 * S;
           player.onGround = false;
           player.jumpsUsed = 1;
           player.isFlipping = false;
           player.flipAngle = 0;
           Sound.jump();
           hapticImpact('light');
-          spawnParticles(player.x, groundY, '#7A5B42', 8, 0.7);
+          spawnParticles(player.x, groundY, biomeIndex === 0 ? '#7a5b42' : '#b8ff00', 8, 0.7);
         } else if (player.jumpsUsed < 2) {
-          player.vy = -705 * S;
+          // Проверяем шкалу хвата (Grip) для двойного прыжка
+          if (grip <= 0) {
+            Sound.noGrip();
+            hapticNotify('warning');
+            spawnPopup(player.x, player.y - player.height - 8 * S, 'НЕТ МАГНЕЗИИ!', '#ff2e4c');
+            return;
+          }
+          grip = Math.max(0, grip - 6);
+          player.vy = -710 * S;
           player.jumpsUsed = 2;
           player.isFlipping = true;
           player.flipAngle = 0;
           Sound.doubleJump();
           hapticImpact('medium');
-          spawnParticles(player.x, player.y - 8 * S, '#FF5500', 12, 0.85);
+          spawnParticles(player.x, player.y - 8 * S, inFlow ? '#ffd000' : '#ff5500', 12, 0.85);
         }
       }
 
       function doSlide() {
         if (state !== 'playing') return;
 
+        player.isHanging = false;
         if (!player.onGround) {
           player.vy = Math.max(player.vy, 1180 * S);
           player.isFlipping = false;
@@ -1049,129 +1888,97 @@
         player.isSliding = true;
         player.slideTimer = 0.65;
         slideBtn.classList.add('active');
-        setTimeout(() => slideBtn.classList.remove('active'), 160);
-      }
-
-      function showRankToast(name) {
-        rankToast.textContent = 'НОВЫЙ РАНГ: ' + name.toUpperCase();
-        rankToast.classList.add('show');
-        if (rankToastTimer) clearTimeout(rankToastTimer);
-        rankToastTimer = setTimeout(() => rankToast.classList.remove('show'), 2100);
+        setTimeout(() => slideBtn.classList.remove('active'), 150);
       }
 
       function updateHUD() {
-        const sc = Math.floor(score);
         const m = Math.floor(distanceMeters);
+        const sc = Math.floor(score);
         hudDist.textContent = m + ' м';
         hudScore.textContent = sc;
-        hudBest.textContent = Math.max(bestScore, sc);
+        hudBest.textContent = Math.max(bestDist, m) + ' м';
 
-        const rankObj = getRank(sc);
-        if (rankObj.name !== currentRankName) {
-          currentRankName = rankObj.name;
-          hudRank.textContent = currentRankName;
-          if (state === 'playing' && sc > 0) {
-            Sound.rankUp();
-            hapticNotify('success');
-            showRankToast(currentRankName);
-          }
-        } else {
-          hudRank.textContent = currentRankName;
-        }
+        const gInt = Math.round(grip);
+        gripPct.textContent = gInt + '%';
+        gripFill.style.width = Math.max(0, Math.min(100, grip)) + '%';
+
+        const isLow = grip <= 15;
+        gripBox.classList.toggle('low', isLow);
+        gripTitle.textContent = grip <= 0 ? 'НЕТ МАГНЕЗИИ!' : 'ХВАТ (GRIP)';
+
+        const b = BIOMES[biomeIndex];
+        hudBiome.textContent = b.name;
+        biomeDot.style.background = b.dot;
+        biomeDot.style.boxShadow = `0 0 8px ${b.dot}`;
+
+        flowPill.classList.toggle('active', inFlow);
       }
 
       /* ========================================================================
-         7. ГЕНЕРАЦИЯ 5 ТЕМАТИЧЕСКИХ ПРЕПЯТСТВИЙ OCR И БОНУСОВ
+         9. СПАВН ПРЕПЯТСТВИЙ OCR И БОНУСОВ
          ======================================================================== */
       function spawnObstaclePattern() {
         const roll = Math.random();
-        const startX = W + 75 * S;
+        const startX = W + 80 * S;
 
-        if (roll < 0.22) {
-          // 1. Деревянная стена / барьер (перепрыгнуть)
-          const h = 48 * S;
-          const w = 34 * S;
-          obstacles.push({
-            type: 'wall_wood',
-            x: startX,
-            y: groundY - h,
-            w: w,
-            h: h
-          });
-          if (Math.random() < 0.65) {
-            spawnCollectible(startX + w * 0.5, groundY - 108 * S, Math.random() < 0.2 ? 'band' : 'chalk');
+        if (roll < 0.25) {
+          // 1. Грязевая яма или бревно / барьер (перепрыгнуть)
+          if (Math.random() < 0.5 && biomeIndex === 0) {
+            const w = (84 + Math.random() * 26) * S;
+            obstacles.push({ type: 'mud_pit', x: startX, y: groundY - 6 * S, w, h: 22 * S, passed: false });
+            if (Math.random() < 0.7) spawnCollectible(startX + w * 0.5, groundY - 80 * S, Math.random() < 0.28 ? 'star' : 'chalk');
+          } else {
+            const w = 34 * S;
+            const h = 46 * S;
+            obstacles.push({ type: 'log_barrier', x: startX, y: groundY - h, w, h, passed: false });
+            if (Math.random() < 0.7) spawnCollectible(startX + w * 0.5, groundY - 104 * S, Math.random() < 0.25 ? 'star' : 'chalk');
           }
-        } else if (roll < 0.44) {
-          // 2. Колючая проволока / низкая сетка (проползти подкатом)
-          const clearance = 38 * S; // Стоя (66*S) заденет, в подкате (30*S) проползёт
-          const w = (112 + Math.random() * 40) * S;
+        } else if (roll < 0.50) {
+          // 2. Колючая проволока низко над землёй (подкат)
+          const clearance = 38 * S;
+          const w = (114 + Math.random() * 40) * S;
           const h = 42 * S;
-          obstacles.push({
-            type: 'barbed_wire',
-            x: startX,
-            y: groundY - clearance - h,
-            w: w,
-            h: h
-          });
-          if (Math.random() < 0.72) {
-            spawnCollectible(startX + w * 0.5, groundY - 20 * S, Math.random() < 0.22 ? 'band' : 'chalk');
+          obstacles.push({ type: 'barbed_wire', x: startX, y: groundY - clearance - h, w, h, passed: false });
+          if (Math.random() < 0.75) {
+            spawnCollectible(startX + w * 0.5, groundY - 18 * S, Math.random() < 0.28 ? 'star' : 'chalk');
           }
-        } else if (roll < 0.64) {
-          // 3. Грязевая яма с водой (перепрыгнуть)
-          const w = (88 + Math.random() * 28) * S;
-          obstacles.push({
-            type: 'mud_pit',
-            x: startX,
-            y: groundY - 6 * S,
-            w: w,
-            h: 24 * S
-          });
-          if (Math.random() < 0.65) {
-            spawnCollectible(startX + w * 0.5, groundY - 76 * S, Math.random() < 0.2 ? 'band' : 'chalk');
-          }
-        } else if (roll < 0.82) {
-          // 4. Высокая рампа «Эверест» (нужен двойной прыжок)
-          const w = 56 * S;
-          const h = 104 * S;
-          obstacles.push({
-            type: 'everest',
-            x: startX,
-            y: groundY - h,
-            w: w,
-            h: h
-          });
-          if (Math.random() < 0.8) {
-            spawnCollectible(startX + w * 0.6, groundY - 166 * S, Math.random() < 0.45 ? 'band' : 'chalk');
-          }
-        } else {
-          // 5. Подвесной рукоход / кольца (можно проползти снизу ИЛИ пролететь сверху за +30)
-          const clearance = 40 * S;
-          const w = (126 + Math.random() * 34) * S;
+        } else if (roll < 0.77) {
+          // 3. Рукоход / кольца сверху (тратят шкалу ХВАТА при прохождении или хвате)
+          const clearance = 42 * S;
+          const w = (138 + Math.random() * 44) * S;
           const h = 38 * S;
           obstacles.push({
             type: 'monkey_bars',
             x: startX,
             y: groundY - clearance - h,
-            w: w,
-            h: h,
-            overBonusGiven: false
+            w,
+            h,
+            passed: false,
+            gripBonusGiven: false
           });
-          // Браслет или магнезия сверху для смельчаков
+          // Мешочек магнезии прямо перед или после рукохода, и звезда на кольцах
+          spawnCollectible(startX - 38 * S, groundY - 46 * S, 'chalk');
+          if (Math.random() < 0.7) {
+            spawnCollectible(startX + w * 0.5, groundY - clearance - h - 22 * S, 'star');
+          }
+        } else {
+          // 4. Высокая стена OCR (требует двойного прыжка)
+          const w = 44 * S;
+          const h = 98 * S;
+          obstacles.push({ type: 'high_wall', x: startX, y: groundY - h, w, h, passed: false });
           if (Math.random() < 0.85) {
-            spawnCollectible(startX + w * 0.5, groundY - clearance - h - 38 * S, Math.random() < 0.5 ? 'band' : 'chalk');
+            spawnCollectible(startX + w * 0.5, groundY - 162 * S, Math.random() < 0.45 ? 'star' : 'chalk');
           }
         }
       }
 
       function spawnCollectible(x, y, kind) {
-        const tierIndex = wristbandsCollected % WRISTBAND_TIERS.length;
         collectibles.push({
-          kind: kind, // 'chalk' (+20) | 'band' (+50)
-          tier: WRISTBAND_TIERS[tierIndex],
-          x: x,
-          y: y,
+          kind, // 'chalk' (+20, +35% Grip) | 'star' (+50)
+          x,
+          y,
           baseY: y,
-          r: (kind === 'band' ? 14 : 12) * S,
+          r: (kind === 'star' ? 14 : 12.5) * S,
           phase: Math.random() * Math.PI * 2
         });
       }
@@ -1179,81 +1986,130 @@
       function spawnParticles(x, y, color, count, mul) {
         const m = mul || 1;
         for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const spd = (65 + Math.random() * 230) * S * m;
+          const ang = Math.random() * Math.PI * 2;
+          const spd = (65 + Math.random() * 235) * S * m;
           particles.push({
-            x: x,
-            y: y,
-            vx: Math.cos(angle) * spd,
-            vy: Math.sin(angle) * spd - 45 * S,
-            size: (2.5 + Math.random() * 4.2) * S,
-            color: color,
-            life: 0.3 + Math.random() * 0.36,
-            maxLife: 0.66
+            x,
+            y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 45 * S,
+            size: (2.5 + Math.random() * 4) * S,
+            color,
+            life: 0.3 + Math.random() * 0.35,
+            maxLife: 0.65
           });
         }
       }
 
       function spawnPopup(x, y, text, color) {
-        popups.push({
-          x: x,
-          y: y,
-          text: text,
-          color: color,
-          life: 0.8,
-          maxLife: 0.8
-        });
+        popups.push({ x, y, text, color, life: 0.85, maxLife: 0.85 });
       }
 
       /* ========================================================================
-         8. ОБНОВЛЕНИЕ ФИЗИКИ (60FPS)
+         10. ИГРОВОЙ ЦИКЛ (UPDATE 60FPS)
          ======================================================================== */
       function update(dt) {
         if (shakeTime > 0) shakeTime = Math.max(0, shakeTime - dt);
         if (hitFlash > 0) hitFlash = Math.max(0, hitFlash - dt * 2.2);
 
+        // Частицы и всплывающий текст
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.x += p.vx * dt;
           p.y += p.vy * dt;
-          p.vy += 640 * S * dt;
+          p.vy += 650 * S * dt;
           p.life -= dt;
           if (p.life <= 0) particles.splice(i, 1);
         }
-
         for (let i = popups.length - 1; i >= 0; i--) {
           const pop = popups[i];
-          pop.y -= 56 * S * dt;
+          pop.y -= 55 * S * dt;
           pop.life -= dt;
           if (pop.life <= 0) popups.splice(i, 1);
+        }
+
+        // Конфетти финальной арены
+        if (biomeIndex === 2) {
+          for (let i = 0; i < arenaConfetti.length; i++) {
+            const cf = arenaConfetti[i];
+            cf.x += cf.vx * dt;
+            cf.y += cf.vy * dt;
+            cf.phase += dt * 4;
+            if (cf.y > groundY) cf.y = -10;
+            if (cf.x < -10) cf.x = W + 10;
+          }
+        }
+
+        // Таймеры QTE
+        if (state === 'burpee') {
+          qte.timeLeft -= dt;
+          updateBurpeeUI();
+          if (qte.timeLeft <= 0) {
+            triggerGameOver(false);
+          }
+          return;
+        }
+
+        if (state === 'everest') {
+          qte.timeLeft -= dt;
+          updateEverestUI();
+          if (qte.timeLeft <= 0) {
+            finishEverest(false);
+          }
+          return;
         }
 
         if (state !== 'playing') {
           bgFar += 16 * S * dt;
           bgMid += 40 * S * dt;
-          bgNear += 105 * S * dt;
+          bgNear += 100 * S * dt;
           player.runCycle += dt * 7;
           updateRibbon(dt, 130 * S);
           return;
         }
 
+        // Основной геймплей
         gameTime += dt;
-        const speedMul = Math.min(2.15, 1 + gameTime * 0.016);
-        speed = baseSpeed * speedMul;
+        const speedMul = Math.min(2.15, 1 + gameTime * 0.015);
+        let currentSpeed = baseSpeed * speedMul;
+
+        // Замедление на рукоходе, если хват на нуле
+        if (player.isHanging && grip <= 0) {
+          currentSpeed *= 0.72;
+        }
+        speed = currentSpeed;
+
+        if (player.invulnTimer > 0) {
+          player.invulnTimer = Math.max(0, player.invulnTimer - dt);
+        }
 
         bgFar += speed * 0.12 * dt;
         bgMid += speed * 0.34 * dt;
         bgNear += speed * dt;
 
-        // Дистанция в метрах (~8-16 м/с в игровом масштабе)
-        distanceMeters += (speed / S) * dt * 0.028;
-        score = distanceMeters * 2 + bonusPoints;
-        updateHUD();
+        // Дистанция и очки (учитывая режим В ПОТОКЕ x2)
+        const dMeters = (speed / S) * dt * 0.032;
+        distanceMeters += dMeters;
+        const mult = inFlow ? 2 : 1;
+        score += dMeters * 2 * mult;
 
-        // Гравитация и прыжки
-        const gravity = 2320 * S;
-        player.vy += gravity * dt;
-        player.y += player.vy * dt;
+        // Проверка босс-рампы «ЭВЕРЕСТ» каждые 500 метров
+        if (distanceMeters >= nextEverestDist) {
+          startEverestQTE();
+          return;
+        }
+
+        // Постепенное восстановление хвата на ровных участках
+        if (!player.isHanging) {
+          grip = Math.min(100, grip + 3.2 * dt);
+        }
+
+        // Физика атлета
+        if (!player.isHanging) {
+          const gravity = 2320 * S;
+          player.vy += gravity * dt;
+          player.y += player.vy * dt;
+        }
 
         if (player.y >= groundY) {
           player.y = groundY;
@@ -1264,28 +2120,28 @@
           player.flipAngle = 0;
         }
 
-        // Подкат
         if (player.isSliding) {
           player.slideTimer -= dt;
-          if (player.onGround && Math.random() < 0.55) {
-            spawnParticles(player.x - 10 * S, groundY - 2 * S, '#6E4C32', 1, 0.35);
+          if (player.onGround && Math.random() < 0.5) {
+            spawnParticles(player.x - 10 * S, groundY - 2 * S, biomeIndex === 0 ? '#6e4c32' : '#b8ff00', 1, 0.35);
           }
           if (player.slideTimer <= 0) player.isSliding = false;
         }
 
-        // Сальто при двойном прыжке
         if (player.isFlipping) {
           player.flipAngle += dt * Math.PI * 4.4;
           if (player.flipAngle >= Math.PI * 2) {
             player.flipAngle = 0;
             player.isFlipping = false;
           }
-          player.afterimages.push({ x: player.x, y: player.y - player.height * 0.5, alpha: 0.42 });
+          player.afterimages.push({ x: player.x, y: player.y - player.height * 0.5, alpha: 0.45 });
+        } else if (inFlow && Math.random() < 0.45) {
+          player.afterimages.push({ x: player.x, y: player.y - player.height * 0.5, alpha: 0.3 });
         }
 
         for (let i = player.afterimages.length - 1; i >= 0; i--) {
           player.afterimages[i].x -= speed * 0.45 * dt;
-          player.afterimages[i].alpha -= dt * 2.4;
+          player.afterimages[i].alpha -= dt * 2.5;
           if (player.afterimages[i].alpha <= 0) player.afterimages.splice(i, 1);
         }
 
@@ -1296,8 +2152,8 @@
         spawnTimer -= dt;
         if (spawnTimer <= 0) {
           spawnObstaclePattern();
-          const minGap = Math.max(0.76, 1.42 - gameTime * 0.011);
-          const maxGap = Math.max(1.1, 1.98 - gameTime * 0.013);
+          const minGap = Math.max(0.78, 1.42 - gameTime * 0.01);
+          const maxGap = Math.max(1.12, 1.98 - gameTime * 0.012);
           spawnTimer = minGap + Math.random() * (maxGap - minGap);
         }
 
@@ -1310,32 +2166,54 @@
           h: activeH - 6 * S
         };
 
-        // Проверка препятствий
+        let hangingNow = false;
+
+        // Препятствия
         for (let i = obstacles.length - 1; i >= 0; i--) {
           const o = obstacles[i];
           o.x -= speed * dt;
 
-          // Бонус за пролёт НАД рукоходом
-          if (o.type === 'monkey_bars' && !o.overBonusGiven) {
-            const playerCenter = player.x;
-            if (playerCenter > o.x + o.w * 0.35 && playerCenter < o.x + o.w * 0.85 && player.y <= o.y + 8 * S) {
-              o.overBonusGiven = true;
-              bonusPoints += 30;
-              score = distanceMeters * 2 + bonusPoints;
-              Sound.monkeyBonus();
-              hapticImpact('medium');
-              spawnParticles(player.x, o.y, '#B8FF00', 14, 0.9);
-              spawnPopup(player.x, o.y - 24 * S, 'РУКОХОД +30!', '#B8FF00');
-              updateHUD();
+          // Засчитываем чистое преодоление для комбо
+          if (!o.passed && o.x + o.w < player.x - 16 * S) {
+            o.passed = true;
+            combo++;
+            if (combo > maxCombo) maxCombo = combo;
+            if (combo === 5 && !inFlow) {
+              inFlow = true;
+              Sound.flowOn();
+              hapticNotify('success');
+              showToast('🔥 РЕЖИМ В ПОТОКЕ ×2!', 'gold');
             }
           }
 
-          // Коллизия
-          if (o.type === 'mud_pit') {
-            // Для грязевой ямы игрок должен перепрыгнуть её (проверяем, если ноги на земле внутри ямы)
-            const footX = player.x;
-            if (player.onGround && footX > o.x + 10 * S && footX < o.x + o.w - 10 * S) {
-              triggerGameOver(true);
+          if (o.type === 'monkey_bars') {
+            // Зона рукохода: если игрок внутри по X и НЕ в подкате — он проходит зону хвата
+            const inX = player.x > o.x && player.x < o.x + o.w;
+            if (inX && !player.isSliding) {
+              hangingNow = true;
+              // Цепляемся за кольца / проходим рукоход — тратим хват!
+              grip = Math.max(0, grip - 30 * dt);
+              if (player.y < o.y + o.h + 46 * S) {
+                // Мягко держим атлета на уровне колец
+                player.y = o.y + o.h + 38 * S;
+                player.vy = 0;
+                player.onGround = false;
+                player.jumpsUsed = 1;
+              }
+              if (!o.gripBonusGiven) {
+                o.gripBonusGiven = true;
+                const pts = 30 * mult;
+                bonusPoints += pts;
+                score += pts;
+                spawnPopup(player.x, o.y - 14 * S, `РУКОХОД +${pts}`, '#b8ff00');
+              }
+              if (grip <= 0 && Math.random() < 0.08) {
+                spawnPopup(player.x, o.y - 28 * S, 'НЕТ МАГНЕЗИИ!', '#ff2e4c');
+              }
+            }
+          } else if (o.type === 'mud_pit') {
+            if (player.onGround && player.x > o.x + 10 * S && player.x < o.x + o.w - 10 * S) {
+              handleCollision(true);
               return;
             }
           } else {
@@ -1346,15 +2224,17 @@
               pBox.y < o.y + o.h - pad &&
               pBox.y + pBox.h > o.y + pad
             ) {
-              triggerGameOver(false);
+              handleCollision(false);
               return;
             }
           }
 
-          if (o.x + o.w < -90 * S) obstacles.splice(i, 1);
+          if (o.x + o.w < -100 * S) obstacles.splice(i, 1);
         }
 
-        // Проверка бонусов (магнезия и браслеты)
+        player.isHanging = hangingNow;
+
+        // Предметы (магнезия и золотые звёзды/браслеты)
         for (let i = collectibles.length - 1; i >= 0; i--) {
           const c = collectibles[i];
           c.x -= speed * dt;
@@ -1365,33 +2245,35 @@
           const cy = pBox.y + pBox.h * 0.5;
           const dx = cx - c.x;
           const dy = cy - c.y;
-          const hitDist = c.r + Math.max(pBox.w, pBox.h) * 0.54;
+          const hitDist = c.r + Math.max(pBox.w, pBox.h) * 0.55;
 
           if (dx * dx + dy * dy <= hitDist * hitDist) {
-            if (c.kind === 'band') {
-              bonusPoints += 50;
-              wristbandsCollected++;
-              Sound.wristband();
-              hapticImpact('medium');
-              spawnParticles(c.x, c.y, c.tier.stroke || c.tier.color, 18, 1.0);
-              spawnPopup(c.x, c.y - 12 * S, '+50 БРАСЛЕТ', c.tier.stroke || c.tier.color);
-            } else {
-              bonusPoints += 20;
+            if (c.kind === 'chalk') {
+              const pts = 20 * mult;
+              bonusPoints += pts;
+              score += pts;
+              grip = Math.min(100, grip + 35);
               Sound.chalk();
               hapticImpact('light');
-              // Вспышка белой пыли магнезии
-              spawnParticles(c.x, c.y, '#FFFFFF', 16, 0.85);
-              spawnParticles(c.x, c.y, '#D9E4F5', 8, 0.55);
-              spawnPopup(c.x, c.y - 12 * S, '+20 МАГНЕЗИЯ', '#FFFFFF');
+              spawnParticles(c.x, c.y, '#ffffff', 16, 0.85);
+              spawnPopup(c.x, c.y - 12 * S, `+${pts} МАГНЕЗИЯ`, '#ffffff');
+            } else {
+              const pts = 50 * mult;
+              bonusPoints += pts;
+              score += pts;
+              Sound.star();
+              hapticImpact('medium');
+              spawnParticles(c.x, c.y, '#ffd000', 18, 1.0);
+              spawnPopup(c.x, c.y - 12 * S, `+${pts} БОНУС`, '#ffd000');
             }
-            score = distanceMeters * 2 + bonusPoints;
-            updateHUD();
             collectibles.splice(i, 1);
             continue;
           }
 
           if (c.x < -60 * S) collectibles.splice(i, 1);
         }
+
+        updateHUD();
       }
 
       function updateRibbon(dt, flowSpeed) {
@@ -1418,7 +2300,7 @@
       }
 
       /* ========================================================================
-         9. ОТРИСОВКА (ГОРЫ, ЛЕС, ФЛАГИ ТРАССЫ, ГРЯЗЬ, ПРЕПЯТСТВИЯ)
+         11. ОТРИСОВКА 3 БИОМОВ, ТРАССЫ, ПРЕПЯТСТВИЙ И АТЛЕТА
          ======================================================================== */
       function draw() {
         ctx.save();
@@ -1427,8 +2309,9 @@
           ctx.translate((Math.random() - 0.5) * mag * 2, (Math.random() - 0.5) * mag * 2);
         }
 
-        drawBackground();
+        drawBiomeBackground();
         drawTrack();
+        if (state === 'everest') drawEverestRampBackdrop();
         drawObstacles();
         drawCollectibles();
         drawPlayer();
@@ -1436,71 +2319,140 @@
         drawPopups();
 
         if (hitFlash > 0) {
-          ctx.fillStyle = `rgba(255, 65, 0, ${hitFlash * 0.3})`;
+          ctx.fillStyle = `rgba(255, 46, 76, ${hitFlash * 0.32})`;
           ctx.fillRect(0, 0, W, H);
         }
         ctx.restore();
       }
 
-      function drawBackground() {
-        // Тактическое вечернее небо
-        const sky = ctx.createLinearGradient(0, 0, 0, groundY);
-        sky.addColorStop(0, '#07090E');
-        sky.addColorStop(0.6, '#101520');
-        sky.addColorStop(1, '#181E2B');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, W, H);
+      function drawBiomeBackground() {
+        if (biomeIndex === 0) {
+          // ЭТАП 1: ЛЕС И ГРЯЗЬ (закатное небо, сосны, оранжевая разметка)
+          const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+          sky.addColorStop(0, '#0a0d16');
+          sky.addColorStop(0.55, '#1b1622');
+          sky.addColorStop(1, '#331d19');
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, W, H);
 
-        // Зарево прожекторов трассы
-        const glow = ctx.createRadialGradient(W * 0.72, groundY * 0.45, 10, W * 0.72, groundY * 0.45, W * 0.6);
-        glow.addColorStop(0, 'rgba(255, 85, 0, 0.11)');
-        glow.addColorStop(1, 'rgba(255, 85, 0, 0)');
-        ctx.fillStyle = glow;
-        ctx.fillRect(0, 0, W, groundY);
+          // Закатное солнце / зарево
+          const sun = ctx.createRadialGradient(W * 0.74, groundY * 0.55, 8, W * 0.74, groundY * 0.55, W * 0.45);
+          sun.addColorStop(0, 'rgba(255, 110, 30, 0.25)');
+          sun.addColorStop(1, 'rgba(255, 85, 0, 0)');
+          ctx.fillStyle = sun;
+          ctx.fillRect(0, 0, W, groundY);
 
-        // Дальний слой: силуэты уральских гор
-        const mSpan = 260 * S;
-        const mOff = bgFar % mSpan;
-        ctx.fillStyle = '#121824';
-        ctx.beginPath();
-        ctx.moveTo(0, groundY);
-        for (let x = -mOff - mSpan; x <= W + mSpan; x += mSpan) {
-          ctx.lineTo(x, groundY);
-          ctx.lineTo(x + mSpan * 0.35, groundY - 125 * S);
-          ctx.lineTo(x + mSpan * 0.68, groundY - 78 * S);
-          ctx.lineTo(x + mSpan * 0.88, groundY - 108 * S);
-          ctx.lineTo(x + mSpan, groundY);
-        }
-        ctx.lineTo(W, groundY);
-        ctx.closePath();
-        ctx.fill();
-
-        // Средний слой: хвойный лес и флаги OCR-трассы
-        const fSpan = 160 * S;
-        const fOff = bgMid % fSpan;
-        for (let x = -fOff - fSpan; x <= W + fSpan; x += fSpan) {
-          // Силуэты ёлок
-          ctx.fillStyle = '#0D131D';
-          drawPine(x + 25 * S, groundY, 46 * S);
-          drawPine(x + 62 * S, groundY, 62 * S);
-          drawPine(x + 102 * S, groundY, 42 * S);
-
-          // Флажок разметки трассы OCR
-          const fx = x + 135 * S;
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-          ctx.lineWidth = 2 * S;
+          // Уральские горы
+          const mSpan = 260 * S;
+          const mOff = bgFar % mSpan;
+          ctx.fillStyle = '#141522';
           ctx.beginPath();
-          ctx.moveTo(fx, groundY);
-          ctx.lineTo(fx, groundY - 46 * S);
-          ctx.stroke();
-
-          ctx.fillStyle = 'rgba(255, 85, 0, 0.72)';
-          ctx.beginPath();
-          ctx.moveTo(fx, groundY - 46 * S);
-          ctx.lineTo(fx + 20 * S, groundY - 39 * S);
-          ctx.lineTo(fx, groundY - 31 * S);
+          ctx.moveTo(0, groundY);
+          for (let x = -mOff - mSpan; x <= W + mSpan; x += mSpan) {
+            ctx.lineTo(x, groundY);
+            ctx.lineTo(x + mSpan * 0.36, groundY - 120 * S);
+            ctx.lineTo(x + mSpan * 0.7, groundY - 76 * S);
+            ctx.lineTo(x + mSpan, groundY);
+          }
+          ctx.lineTo(W, groundY);
           ctx.closePath();
           ctx.fill();
+
+          // Сосны и оранжевые флажки OCR
+          const fSpan = 165 * S;
+          const fOff = bgMid % fSpan;
+          for (let x = -fOff - fSpan; x <= W + fSpan; x += fSpan) {
+            ctx.fillStyle = '#0e131c';
+            drawPine(x + 24 * S, groundY, 50 * S);
+            drawPine(x + 62 * S, groundY, 68 * S);
+            drawPine(x + 104 * S, groundY, 44 * S);
+
+            const fx = x + 138 * S;
+            ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+            ctx.lineWidth = 2 * S;
+            ctx.beginPath();
+            ctx.moveTo(fx, groundY);
+            ctx.lineTo(fx, groundY - 46 * S);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255, 85, 0, 0.85)';
+            ctx.beginPath();
+            ctx.moveTo(fx, groundY - 46 * S);
+            ctx.lineTo(fx + 20 * S, groundY - 39 * S);
+            ctx.lineTo(fx, groundY - 31 * S);
+            ctx.closePath();
+            ctx.fill();
+          }
+        } else if (biomeIndex === 1) {
+          // ЭТАП 2: НЕОНОВЫЙ НИНДЗЯ-ЗАЛ ROB
+          const bg = ctx.createLinearGradient(0, 0, 0, groundY);
+          bg.addColorStop(0, '#070a11');
+          bg.addColorStop(1, '#101827');
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, W, H);
+
+          // Неоновые потолочные фермы
+          const tSpan = 150 * S;
+          const tOff = bgMid % tSpan;
+          ctx.strokeStyle = 'rgba(184, 255, 0, 0.14)';
+          ctx.lineWidth = 2 * S;
+          for (let x = -tOff - tSpan; x <= W + tSpan; x += tSpan) {
+            // Колонна зала
+            ctx.fillStyle = '#121a29';
+            ctx.fillRect(x, 0, 16 * S, groundY);
+
+            // Неоновая вертикальная полоса
+            ctx.fillStyle = (Math.floor(x / tSpan) % 2 === 0) ? 'rgba(184,255,0,0.45)' : 'rgba(255,85,0,0.45)';
+            ctx.fillRect(x + 6 * S, 24 * S, 4 * S, groundY - 60 * S);
+
+            // Диагональ фермы сверху
+            ctx.beginPath();
+            ctx.moveTo(x, 42 * S);
+            ctx.lineTo(x + tSpan, 95 * S);
+            ctx.stroke();
+          }
+
+          // Надпись ROB ATHLETIC на заднике
+          ctx.save();
+          ctx.fillStyle = 'rgba(184, 255, 0, 0.055)';
+          ctx.font = `900 ${Math.round(52 * S)}px -apple-system, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillText('ROB ATHLETIC', W * 0.5, groundY * 0.52);
+          ctx.restore();
+        } else {
+          // ЭТАП 3: ФИНАЛЬНАЯ АРЕНА СУПЕРНИНДЗЯ
+          const bg = ctx.createLinearGradient(0, 0, 0, groundY);
+          bg.addColorStop(0, '#0d0a06');
+          bg.addColorStop(0.6, '#1a140a');
+          bg.addColorStop(1, '#261c0b');
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, W, H);
+
+          // Прожекторы арены
+          for (let i = 0; i < 3; i++) {
+            const bx = W * (0.2 + i * 0.3);
+            const sway = Math.sin(gameTime * 1.4 + i * 2) * 85 * S;
+            const beam = ctx.createLinearGradient(bx, 0, bx + sway, groundY);
+            beam.addColorStop(0, 'rgba(255, 208, 0, 0.22)');
+            beam.addColorStop(1, 'rgba(255, 208, 0, 0)');
+            ctx.fillStyle = beam;
+            ctx.beginPath();
+            ctx.moveTo(bx - 16 * S, 0);
+            ctx.lineTo(bx + 16 * S, 0);
+            ctx.lineTo(bx + sway + 75 * S, groundY);
+            ctx.lineTo(bx + sway - 75 * S, groundY);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          // Конфетти-искры
+          for (let i = 0; i < arenaConfetti.length; i++) {
+            const cf = arenaConfetti[i];
+            ctx.fillStyle = cf.color;
+            ctx.globalAlpha = 0.65;
+            ctx.fillRect(cf.x, cf.y, cf.size, cf.size * 0.6);
+          }
+          ctx.globalAlpha = 1;
         }
       }
 
@@ -1514,77 +2466,102 @@
       }
 
       function drawTrack() {
-        // Трейловая грунтовая трасса с грязью
-        const dirt = ctx.createLinearGradient(0, groundY, 0, H);
-        dirt.addColorStop(0, '#241D18');
-        dirt.addColorStop(0.22, '#171413');
-        dirt.addColorStop(1, '#090B10');
-        ctx.fillStyle = dirt;
+        const g = ctx.createLinearGradient(0, groundY, 0, H);
+        if (biomeIndex === 0) {
+          g.addColorStop(0, '#261d17');
+          g.addColorStop(0.25, '#171413');
+          g.addColorStop(1, '#090b10');
+        } else if (biomeIndex === 1) {
+          g.addColorStop(0, '#141d2e');
+          g.addColorStop(0.3, '#0d121d');
+          g.addColorStop(1, '#080a10');
+        } else {
+          g.addColorStop(0, '#292010');
+          g.addColorStop(0.3, '#15110b');
+          g.addColorStop(1, '#090806');
+        }
+        ctx.fillStyle = g;
         ctx.fillRect(0, groundY, W, H - groundY);
 
-        // Светящаяся кромка трассы
+        const edgeColor = biomeIndex === 0 ? '#ff5500' : (biomeIndex === 1 ? '#b8ff00' : '#ffd000');
         ctx.save();
-        ctx.shadowColor = 'rgba(255, 85, 0, 0.55)';
+        ctx.shadowColor = edgeColor;
         ctx.shadowBlur = 10 * S;
-        ctx.fillStyle = '#FF5500';
+        ctx.fillStyle = edgeColor;
         ctx.fillRect(0, groundY, W, 3 * S);
         ctx.restore();
 
-        // Трейловые камни/кочки и разметка
         const span = 72 * S;
         const off = bgNear % span;
-        ctx.fillStyle = 'rgba(184, 255, 0, 0.16)';
+        ctx.fillStyle = biomeIndex === 2 ? 'rgba(255,208,0,0.22)' : 'rgba(184,255,0,0.16)';
         for (let x = -off; x < W + span; x += span) {
           ctx.fillRect(x, groundY + 12 * S, 22 * S, 3 * S);
         }
-        ctx.fillStyle = 'rgba(120, 88, 60, 0.32)';
-        for (let x = -(bgNear * 1.15 % (span * 1.4)); x < W + span * 2; x += span * 1.4) {
-          ctx.beginPath();
-          ctx.ellipse(x + 15 * S, groundY + 26 * S, 16 * S, 4 * S, 0, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      }
+
+      function drawEverestRampBackdrop() {
+        ctx.save();
+        const rx = W * 0.56;
+        const rw = W * 0.44;
+        const rh = 190 * S;
+        const grad = ctx.createLinearGradient(rx, groundY - rh, rx, groundY);
+        grad.addColorStop(0, '#3a2b14');
+        grad.addColorStop(1, '#141720');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(rx, groundY);
+        ctx.quadraticCurveTo(rx + rw * 0.48, groundY - rh * 0.25, rx + rw * 0.78, groundY - rh);
+        ctx.lineTo(W, groundY - rh);
+        ctx.lineTo(W, groundY);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffd000';
+        ctx.lineWidth = 4 * S;
+        ctx.stroke();
+        ctx.restore();
       }
 
       function drawObstacles() {
         for (let i = 0; i < obstacles.length; i++) {
           const o = obstacles[i];
 
-          if (o.type === 'wall_wood') {
-            // 1. Деревянная стена / барьер OCR
+          if (o.type === 'log_barrier') {
             ctx.save();
-            ctx.fillStyle = '#4A3423';
+            ctx.fillStyle = biomeIndex === 0 ? '#503724' : '#242e42';
             ctx.fillRect(o.x, o.y, o.w, o.h);
-
-            // Доски
-            ctx.strokeStyle = '#2A1C12';
-            ctx.lineWidth = 2 * S;
-            for (let py = o.y + 12 * S; py < o.y + o.h; py += 12 * S) {
-              ctx.beginPath();
-              ctx.moveTo(o.x, py);
-              ctx.lineTo(o.x + o.w, py);
-              ctx.stroke();
-            }
-
-            // Верхняя неоновая накладка
-            ctx.shadowColor = 'rgba(255, 85, 0, 0.7)';
+            ctx.fillStyle = '#ff5500';
+            ctx.shadowColor = 'rgba(255,85,0,0.75)';
             ctx.shadowBlur = 10 * S;
-            ctx.fillStyle = '#FF5500';
             ctx.fillRect(o.x - 2 * S, o.y, o.w + 4 * S, 7 * S);
             ctx.restore();
-          } else if (o.type === 'barbed_wire') {
-            // 2. Колючая проволока / низкая сетка (подкат)
+          } else if (o.type === 'mud_pit') {
             ctx.save();
-            // Опорные столбики по краям
-            ctx.fillStyle = '#2D3546';
+            ctx.fillStyle = '#2d1e14';
+            ctx.beginPath();
+            ctx.ellipse(o.x + o.w * 0.5, groundY + 4 * S, o.w * 0.5, 11 * S, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#533926';
+            ctx.beginPath();
+            ctx.ellipse(o.x + o.w * 0.5, groundY + 2 * S, o.w * 0.43, 6.5 * S, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(184,255,0,0.55)';
+            ctx.lineWidth = 1.8 * S;
+            const wave = Math.sin(gameTime * 8 + o.x * 0.05) * 3 * S;
+            ctx.beginPath();
+            ctx.moveTo(o.x + o.w * 0.2, groundY + 2 * S);
+            ctx.quadraticCurveTo(o.x + o.w * 0.5, groundY - 3 * S + wave, o.x + o.w * 0.8, groundY + 2 * S);
+            ctx.stroke();
+            ctx.restore();
+          } else if (o.type === 'barbed_wire') {
+            ctx.save();
+            ctx.fillStyle = '#2e3748';
             ctx.fillRect(o.x, o.y, 6 * S, groundY - o.y);
             ctx.fillRect(o.x + o.w - 6 * S, o.y, 6 * S, groundY - o.y);
-
-            // Полупрозрачная сетка
-            ctx.fillStyle = 'rgba(255, 85, 0, 0.12)';
+            ctx.fillStyle = 'rgba(255, 85, 0, 0.13)';
             ctx.fillRect(o.x + 6 * S, o.y, o.w - 12 * S, o.h);
 
-            // Зигзаг колючей проволоки
-            ctx.strokeStyle = '#D5DCE8';
+            ctx.strokeStyle = '#d5dce8';
             ctx.lineWidth = 2 * S;
             for (let row = 0; row < 3; row++) {
               const ry = o.y + (8 + row * 14) * S;
@@ -1596,70 +2573,33 @@
               }
               ctx.stroke();
             }
-
-            // Нижняя сигнальная линия
-            ctx.shadowColor = 'rgba(255, 85, 0, 0.8)';
+            ctx.shadowColor = 'rgba(255,85,0,0.85)';
             ctx.shadowBlur = 10 * S;
-            ctx.fillStyle = '#FF5500';
+            ctx.fillStyle = '#ff5500';
             ctx.fillRect(o.x, o.y + o.h - 4 * S, o.w, 4 * S);
             ctx.restore();
-          } else if (o.type === 'mud_pit') {
-            // 3. Грязевая яма с водой
-            ctx.save();
-            ctx.fillStyle = '#2C1E14';
-            ctx.beginPath();
-            ctx.ellipse(o.x + o.w * 0.5, groundY + 4 * S, o.w * 0.5, 11 * S, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#4B3423';
-            ctx.beginPath();
-            ctx.ellipse(o.x + o.w * 0.5, groundY + 2 * S, o.w * 0.44, 6.5 * S, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Пузыри / блики воды в грязи
-            ctx.strokeStyle = 'rgba(184, 255, 0, 0.55)';
-            ctx.lineWidth = 1.8 * S;
-            const wave = Math.sin(gameTime * 8 + o.x * 0.05) * 3 * S;
-            ctx.beginPath();
-            ctx.moveTo(o.x + o.w * 0.2, groundY + 2 * S);
-            ctx.quadraticCurveTo(o.x + o.w * 0.5, groundY - 3 * S + wave, o.x + o.w * 0.8, groundY + 2 * S);
-            ctx.stroke();
-            ctx.restore();
-          } else if (o.type === 'everest') {
-            // 4. Высокая рампа «Эверест» (двойной прыжок)
+          } else if (o.type === 'high_wall') {
             ctx.save();
             const g = ctx.createLinearGradient(o.x, o.y, o.x, o.y + o.h);
-            g.addColorStop(0, '#2B3345');
+            g.addColorStop(0, '#313a4e');
             g.addColorStop(1, '#141923');
             ctx.fillStyle = g;
+            ctx.fillRect(o.x, o.y, o.w, o.h);
 
-            // Вогнутый профиль рампы «Эверест»
-            ctx.beginPath();
-            ctx.moveTo(o.x, o.y + o.h);
-            ctx.quadraticCurveTo(o.x + o.w * 0.45, o.y + o.h * 0.72, o.x + o.w * 0.75, o.y);
-            ctx.lineTo(o.x + o.w, o.y);
-            ctx.lineTo(o.x + o.w, o.y + o.h);
-            ctx.closePath();
-            ctx.fill();
-
-            // Неоновая вершина
-            ctx.shadowColor = 'rgba(255, 85, 0, 0.85)';
+            ctx.shadowColor = 'rgba(255,85,0,0.85)';
             ctx.shadowBlur = 12 * S;
-            ctx.fillStyle = '#FF5500';
-            ctx.fillRect(o.x + o.w * 0.72, o.y, o.w * 0.28, 7 * S);
+            ctx.fillStyle = '#ff5500';
+            ctx.fillRect(o.x - 2 * S, o.y, o.w + 4 * S, 8 * S);
             ctx.shadowBlur = 0;
 
-            // Метка «×2»
-            ctx.fillStyle = '#B8FF00';
+            ctx.fillStyle = '#b8ff00';
             ctx.font = `900 ${Math.round(13 * S)}px -apple-system, sans-serif`;
             ctx.textAlign = 'center';
-            ctx.fillText('×2', o.x + o.w * 0.78, o.y + 26 * S);
+            ctx.fillText('×2', o.x + o.w * 0.5, o.y + 28 * S);
             ctx.restore();
           } else if (o.type === 'monkey_bars') {
-            // 5. Подвесной рукоход / кольца
             ctx.save();
-            // Тросы крепления
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+            ctx.strokeStyle = 'rgba(255,255,255,0.22)';
             ctx.lineWidth = 2.2 * S;
             ctx.beginPath();
             ctx.moveTo(o.x + 12 * S, 0);
@@ -1668,15 +2608,13 @@
             ctx.lineTo(o.x + o.w - 12 * S, o.y);
             ctx.stroke();
 
-            // Ферма рукохода
-            ctx.fillStyle = '#1E2534';
+            ctx.fillStyle = '#1e2534';
             ctx.fillRect(o.x, o.y, o.w, 16 * S);
-            ctx.fillStyle = '#FF5500';
+            ctx.fillStyle = '#ff5500';
             ctx.fillRect(o.x, o.y + 14 * S, o.w, 4 * S);
 
-            // Кольца
-            const rings = Math.max(3, Math.floor(o.w / (30 * S)));
-            ctx.strokeStyle = '#B8FF00';
+            const rings = Math.max(3, Math.floor(o.w / (32 * S)));
+            ctx.strokeStyle = '#b8ff00';
             ctx.lineWidth = 2.6 * S;
             for (let r = 0; r < rings; r++) {
               const rx = o.x + (o.w / (rings + 1)) * (r + 1);
@@ -1684,7 +2622,6 @@
               ctx.moveTo(rx, o.y + 18 * S);
               ctx.lineTo(rx, o.y + 24 * S);
               ctx.stroke();
-
               ctx.beginPath();
               ctx.arc(rx, o.y + 30 * S, 6.5 * S, 0, Math.PI * 2);
               ctx.stroke();
@@ -1701,46 +2638,54 @@
           ctx.translate(c.x, c.y);
 
           if (c.kind === 'chalk') {
-            // Мешочек магнезии (+20)
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+            ctx.shadowColor = 'rgba(255,255,255,0.85)';
             ctx.shadowBlur = 12 * S;
-            ctx.fillStyle = '#FFFFFF';
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(0, 2 * S, c.r * 0.78, 0, Math.PI * 2);
             ctx.fill();
-
-            // Завязка мешочка
-            ctx.fillStyle = '#B8FF00';
+            ctx.fillStyle = '#b8ff00';
             ctx.fillRect(-5 * S, -c.r * 0.82, 10 * S, 4 * S);
           } else {
-            // Силиконовый браслет OCR (+50, цвет по тиру)
-            ctx.shadowColor = c.tier.glow;
+            ctx.shadowColor = 'rgba(255,208,0,0.9)';
             ctx.shadowBlur = 15 * S;
-            ctx.strokeStyle = c.tier.color;
-            ctx.lineWidth = 5 * S;
+            ctx.strokeStyle = '#ffd000';
+            ctx.lineWidth = 4.5 * S;
             ctx.beginPath();
-            ctx.arc(0, 0, c.r * 0.82, 0, Math.PI * 2);
+            ctx.arc(0, 0, c.r * 0.8, 0, Math.PI * 2);
             ctx.stroke();
-
-            if (c.tier.stroke) {
-              ctx.strokeStyle = c.tier.stroke;
-              ctx.lineWidth = 1.8 * S;
-              ctx.beginPath();
-              ctx.arc(0, 0, c.r * 0.98, 0, Math.PI * 2);
-              ctx.stroke();
-            }
+            ctx.fillStyle = '#ffd000';
+            ctx.beginPath();
+            ctx.arc(0, 0, 3.5 * S, 0, Math.PI * 2);
+            ctx.fill();
           }
           ctx.restore();
         }
       }
 
       function drawPlayer() {
+        // Аура неуязвимости или «В потоке x2»
+        if (inFlow || player.invulnTimer > 0) {
+          ctx.save();
+          const auraColor = player.invulnTimer > 0 ? 'rgba(184,255,0,0.3)' : 'rgba(255,208,0,0.28)';
+          ctx.fillStyle = auraColor;
+          ctx.beginPath();
+          ctx.arc(player.x, player.y - player.height * 0.45, 32 * S, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Мигание при неуязвимости
+        if (player.invulnTimer > 0 && Math.floor(gameTime * 16) % 2 === 0) {
+          ctx.globalAlpha = 0.55;
+        }
+
         for (let i = 0; i < player.afterimages.length; i++) {
           const img = player.afterimages[i];
           ctx.save();
-          ctx.fillStyle = `rgba(255, 85, 0, ${img.alpha * 0.48})`;
+          ctx.fillStyle = inFlow ? `rgba(255, 208, 0, ${img.alpha * 0.5})` : `rgba(255, 85, 0, ${img.alpha * 0.48})`;
           ctx.beginPath();
-          ctx.arc(img.x, img.y, 15 * S, 0, Math.PI * 2);
+          ctx.arc(img.x, img.y, 14 * S, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
@@ -1748,11 +2693,11 @@
         // Лента повязки OCR
         if (player.ribbon.length > 1) {
           ctx.save();
-          ctx.strokeStyle = '#FF5500';
+          ctx.strokeStyle = inFlow ? '#ffd000' : '#ff5500';
           ctx.lineWidth = 4 * S;
           ctx.lineCap = 'round';
           ctx.lineJoin = 'round';
-          ctx.shadowColor = 'rgba(255, 85, 0, 0.75)';
+          ctx.shadowColor = inFlow ? 'rgba(255,208,0,0.85)' : 'rgba(255,85,0,0.75)';
           ctx.shadowBlur = 8 * S;
           ctx.beginPath();
           ctx.moveTo(player.ribbon[0].x, player.ribbon[0].y);
@@ -1763,8 +2708,8 @@
           ctx.restore();
         }
 
-        // Тень на земле
-        const airFactor = Math.max(0.22, 1 - (groundY - player.y) / (220 * S));
+        // Тень на трассе
+        const airFactor = Math.max(0.2, 1 - (groundY - player.y) / (220 * S));
         ctx.save();
         ctx.fillStyle = `rgba(0, 0, 0, ${0.44 * airFactor})`;
         ctx.beginPath();
@@ -1772,7 +2717,7 @@
         ctx.fill();
         ctx.restore();
 
-        // Атлет OCR
+        // Фигура атлета
         ctx.save();
         const activeH = player.isSliding ? player.slideHeight : player.height;
         const centerY = player.y - activeH * 0.5;
@@ -1780,7 +2725,7 @@
         if (player.isFlipping) ctx.rotate(player.flipAngle);
 
         if (player.isSliding) {
-          ctx.strokeStyle = '#F4F6FA';
+          ctx.strokeStyle = '#f4f7fb';
           ctx.lineWidth = 5.8 * S;
           ctx.lineCap = 'round';
           ctx.beginPath();
@@ -1788,27 +2733,26 @@
           ctx.lineTo(18 * S, 9 * S);
           ctx.stroke();
 
-          ctx.fillStyle = '#151A25';
-          ctx.strokeStyle = '#B8FF00';
+          ctx.fillStyle = '#151a25';
+          ctx.strokeStyle = '#b8ff00';
           ctx.lineWidth = 2.2 * S;
-          ctx.beginPath();
-          ctx.roundRect(-16 * S, -6 * S, 26 * S, 13 * S, 6 * S);
+          drawRoundedRect(-16 * S, -6 * S, 26 * S, 13 * S, 6 * S);
           ctx.fill();
           ctx.stroke();
 
-          ctx.fillStyle = '#F4F6FA';
+          ctx.fillStyle = '#f4f7fb';
           ctx.beginPath();
           ctx.arc(-8 * S, -9 * S, 8 * S, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#FF5500';
+          ctx.fillStyle = '#ff5500';
           ctx.fillRect(-16 * S, -12 * S, 16 * S, 4 * S);
         } else {
-          const legSwing = player.onGround ? Math.sin(player.runCycle) * 14 * S : 9 * S;
-          const armSwing = player.onGround ? Math.cos(player.runCycle) * 12 * S : -10 * S;
-          ctx.rotate(player.onGround ? 0.16 : (player.vy < 0 ? 0.08 : 0.24));
+          const legSwing = player.onGround ? Math.sin(player.runCycle) * 14 * S : (player.isHanging ? Math.sin(player.runCycle * 0.7) * 8 * S : 9 * S);
+          const armSwing = player.onGround ? Math.cos(player.runCycle) * 12 * S : -12 * S;
+          ctx.rotate(player.isHanging ? -0.05 : (player.onGround ? 0.16 : (player.vy < 0 ? 0.08 : 0.24)));
 
-          ctx.strokeStyle = '#8E99AD';
+          ctx.strokeStyle = '#8e99ad';
           ctx.lineWidth = 5.4 * S;
           ctx.lineCap = 'round';
           ctx.beginPath();
@@ -1816,48 +2760,50 @@
           ctx.lineTo(-legSwing, 27 * S);
           ctx.stroke();
 
-          ctx.strokeStyle = '#F4F6FA';
+          ctx.strokeStyle = '#f4f7fb';
           ctx.beginPath();
           ctx.moveTo(0, 6 * S);
           ctx.lineTo(legSwing, 27 * S);
           ctx.stroke();
 
-          ctx.strokeStyle = '#8E99AD';
+          // Руки вверх, если на рукоходе
+          ctx.strokeStyle = '#8e99ad';
           ctx.lineWidth = 4.6 * S;
           ctx.beginPath();
           ctx.moveTo(0, -10 * S);
-          ctx.lineTo(-armSwing, 4 * S);
+          if (player.isHanging) ctx.lineTo(-6 * S, -34 * S);
+          else ctx.lineTo(-armSwing, 4 * S);
           ctx.stroke();
 
-          // Компрессионная футболка атлета
-          ctx.fillStyle = '#161C28';
-          ctx.strokeStyle = '#B8FF00';
+          ctx.fillStyle = '#161c28';
+          ctx.strokeStyle = inFlow ? '#ffd000' : '#b8ff00';
           ctx.lineWidth = 2.2 * S;
-          ctx.beginPath();
-          ctx.roundRect(-8 * S, -16 * S, 16 * S, 24 * S, 6 * S);
+          drawRoundedRect(-8 * S, -16 * S, 16 * S, 24 * S, 6 * S);
           ctx.fill();
           ctx.stroke();
 
-          ctx.strokeStyle = '#F4F6FA';
+          ctx.strokeStyle = '#f4f7fb';
           ctx.lineWidth = 4.6 * S;
           ctx.beginPath();
           ctx.moveTo(2 * S, -10 * S);
-          ctx.lineTo(armSwing + 4 * S, 2 * S);
+          if (player.isHanging) ctx.lineTo(10 * S, -34 * S);
+          else ctx.lineTo(armSwing + 4 * S, 2 * S);
           ctx.stroke();
 
-          ctx.fillStyle = '#F4F6FA';
+          ctx.fillStyle = '#f4f7fb';
           ctx.beginPath();
           ctx.arc(2 * S, -24 * S, 8.8 * S, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = '#FF5500';
+          ctx.fillStyle = inFlow ? '#ffd000' : '#ff5500';
           ctx.fillRect(-7 * S, -27 * S, 18 * S, 4 * S);
 
-          ctx.fillStyle = '#0A0D12';
+          ctx.fillStyle = '#0b0e14';
           ctx.fillRect(4 * S, -25.5 * S, 5 * S, 2.5 * S);
         }
 
         ctx.restore();
+        ctx.globalAlpha = 1;
       }
 
       function drawParticles() {
@@ -1880,10 +2826,10 @@
           const alpha = Math.max(0, pop.life / pop.maxLife);
           ctx.save();
           ctx.globalAlpha = alpha;
-          ctx.font = `900 ${Math.round(16 * S)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+          ctx.font = `900 ${Math.round(15 * S)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
           ctx.textAlign = 'center';
           ctx.fillStyle = pop.color;
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+          ctx.shadowColor = 'rgba(0,0,0,0.9)';
           ctx.shadowBlur = 6;
           ctx.fillText(pop.text, pop.x, pop.y);
           ctx.restore();
@@ -1891,7 +2837,7 @@
       }
 
       /* ========================================================================
-         10. УПРАВЛЕНИЕ (КНОПКИ, СВАЙПЫ, ТАП, КЛАВИАТУРА)
+         12. СОБЫТИЯ И УПРАВЛЕНИЕ
          ======================================================================== */
       let touchStartY = null;
       let swipeHandled = false;
@@ -1930,44 +2876,82 @@
         if (state === 'playing' && e.button === 0) doJump();
       });
 
-      // Кнопка «ПОЛЗКОМ / ПОДКАТ»
+      // Нижние кнопки управления
       slideBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); doSlide(); }, { passive: false });
       slideBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); doSlide(); });
-
-      // Кнопка «ПРЫЖОК ×2»
       jumpBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); doJump(); }, { passive: false });
       jumpBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); doJump(); });
+
+      // QTE тапы (кнопки + тап по оверлею)
+      burpeeTapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); tapBurpee(); }, { passive: false });
+      burpeeTapBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); tapBurpee(); });
+
+      everestTapBtn.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); tapEverest(); }, { passive: false });
+      everestTapBtn.addEventListener('mousedown', (e) => { e.preventDefault(); e.stopPropagation(); tapEverest(); });
 
       // Клавиатура (ПК)
       window.addEventListener('keydown', (e) => {
         if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
           e.preventDefault();
           if (state === 'playing') doJump();
-          else startGame();
+          else if (state === 'burpee') tapBurpee();
+          else if (state === 'everest') tapEverest();
+          else if (lbOverlay.classList.contains('hidden')) startGame();
         } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
           e.preventDefault();
           if (state === 'playing') doSlide();
         }
       });
 
+      // Кнопки экранов
       startBtn.addEventListener('click', startGame);
       restartBtn.addEventListener('click', startGame);
+      startLbBtn.addEventListener('click', openLeaderboard);
+      endLbBtn.addEventListener('click', openLeaderboard);
+      lbCloseBtn.addEventListener('click', () => {
+        hapticImpact('light');
+        lbOverlay.classList.add('hidden');
+      });
 
+      // Копирование промокода ROBNINJA
+      document.querySelectorAll('[data-copy-promo]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          hapticImpact('medium');
+          copyTextToClipboard('ROBNINJA');
+          showToast('ПРОМОКОД ROBNINJA СКОПИРОВАН!', 'lime');
+        });
+      });
+
+      // Кнопка «Бросить вызов другу»
+      shareBtn.addEventListener('click', () => {
+        hapticImpact('medium');
+        const dist = Math.floor(distanceMeters);
+        const sc = Math.floor(score);
+        const shareText = `Я пробежал ${dist} м (${sc} очков) в OCR RACE | УФА от ROB ATHLETIC SYSTEM! Побьёшь мой рекорд?`;
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(SHARE_GAME_URL)}&text=${encodeURIComponent(shareText)}`;
+
+        if (tg && typeof tg.openTelegramLink === 'function') {
+          try {
+            tg.openTelegramLink(shareUrl);
+            return;
+          } catch (e) {}
+        }
+        copyTextToClipboard(shareText + ' ' + SHARE_GAME_URL);
+        showToast('ТЕКСТ ВЫЗОВА СКОПИРОВАН В БУФЕР!', 'lime');
+      });
+
+      // Закрыть Mini App
       closeBtn.addEventListener('click', () => {
         hapticImpact('light');
         if (tg && typeof tg.close === 'function') {
-          try { tg.close(); } catch (e) {
-            gameOverOverlay.classList.add('hidden');
-            startOverlay.classList.remove('hidden');
-            state = 'start';
-          }
-        } else {
-          gameOverOverlay.classList.add('hidden');
-          startOverlay.classList.remove('hidden');
-          state = 'start';
+          try { tg.close(); return; } catch (e) {}
         }
+        gameOverOverlay.classList.add('hidden');
+        startOverlay.classList.remove('hidden');
+        state = 'start';
       });
 
+      // Звук вкл/выкл
       soundBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         Sound.muted = !Sound.muted;
@@ -1981,10 +2965,13 @@
         hapticImpact('light');
       });
 
-      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        initArenaConfetti();
+      });
 
       /* ========================================================================
-         11. ЗАПУСК ЦИКЛА
+         13. ЗАПУСК ИГРЫ ПОСЛЕ ЗАГРУЗКИ СТРАНИЦЫ
          ======================================================================== */
       let lastTime = 0;
       function loop(ts) {
@@ -1999,8 +2986,9 @@
       window.onload = function () {
         initTelegram();
         resizeCanvas();
+        initArenaConfetti();
         resetGame();
-        hudBest.textContent = bestScore;
+        refreshProfileUI();
         requestAnimationFrame(loop);
       };
     })();
