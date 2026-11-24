@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>OCR NINJA RUN — ROB ATHLETIC SYSTEM</title>
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* ==========================================================================
+       БАЗОВЫЕ ПЕРЕМЕННЫЕ И СБРОС СТИЛЕЙ
+       ========================================================================== */
+    :root {
+      --bg-dark: #0B0D12;
+      --bg-panel: rgba(16, 20, 28, 0.88);
+      --orange: #FF5500;
+      --orange-glow: rgba(255, 85, 0, 0.45);
+      --lime: #B8FF00;
+      --lime-glow: rgba(184, 255, 0, 0.35);
+      --gold: #FFD000;
+      --text-main: #F4F6FA;
+      --text-muted: #8E97A8;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    /* Контейнер игры */
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg-dark);
+    }
+
+    /* Игровой холст */
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* ==========================================================================
+       ВЕРХНЯЯ ПАНЕЛЬ (HUD)
+       ========================================================================== */
+    .hud {
+      position: absolute;
+      top: calc(12px + var(--safe-top));
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .score-card {
+      background: rgba(11, 13, 18, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .score-block {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .score-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .score-value {
+      font-size: 22px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: var(--text-main);
+    }
+
+    .score-value.best {
+      font-size: 16px;
+      color: var(--lime);
+    }
+
+    .rank-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      background: rgba(255, 85, 0, 0.16);
+      border: 1px solid rgba(255, 85, 0, 0.45);
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #FF8A4C;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .rank-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 8px var(--orange);
+    }
+
+    .sound-btn {
+      pointer-events: auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(11, 13, 18, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .sound-btn:active {
+      transform: scale(0.92);
+    }
+
+    .sound-btn.muted {
+      color: var(--text-muted);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* Уведомление о новом ранге */
+    .rank-toast {
+      position: absolute;
+      top: calc(86px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%) translateY(-14px) scale(0.92);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
+      background: linear-gradient(135deg, rgba(255, 85, 0, 0.95), rgba(215, 55, 0, 0.95));
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 28px var(--orange-glow);
+      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+    }
+
+    .rank-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+
+    /* ==========================================================================
+       КНОПКА ПОДКАТА НА ЭКРАНЕ (ДЛЯ УДОБСТВА НА МОБИЛЬНЫХ)
+       ========================================================================== */
+    .controls-bar {
+      position: absolute;
+      bottom: calc(18px + var(--safe-bottom));
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 12;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .controls-bar.visible {
+      opacity: 1;
+    }
+
+    .tap-hint-mini {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(244, 246, 250, 0.42);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 8px 4px;
+    }
+
+    .slide-btn {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 22px;
+      border-radius: 16px;
+      border: 1.5px solid rgba(184, 255, 0, 0.55);
+      background: rgba(16, 22, 18, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--lime);
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(184, 255, 0, 0.12);
+      cursor: pointer;
+      transition: transform 0.08s ease, background 0.12s ease;
+    }
+
+    .slide-btn:active,
+    .slide-btn.active {
+      transform: scale(0.93);
+      background: rgba(184, 255, 0, 0.22);
+      box-shadow: 0 0 20px var(--lime-glow);
+    }
+
+    /* ==========================================================================
+       ОВЕРЛЕИ (СТАРТ И GAME OVER)
+       ========================================================================== */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: radial-gradient(circle at 50% 35%, rgba(255, 85, 0, 0.12), rgba(11, 13, 18, 0.86) 72%);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      z-index: 20;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 370px;
+      background: var(--bg-panel);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 28px 22px 24px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(255, 85, 0, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 16%;
+      right: 16%;
+      height: 3px;
+      border-radius: 0 0 6px 6px;
+      background: linear-gradient(90deg, var(--orange), var(--lime));
+      box-shadow: 0 0 14px var(--orange-glow);
+    }
+
+    .brand-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--lime);
+      background: rgba(184, 255, 0, 0.1);
+      border: 1px solid rgba(184, 255, 0, 0.28);
+      border-radius: 999px;
+      padding: 5px 12px;
+      margin-bottom: 14px;
+    }
+
+    .game-title {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      background: linear-gradient(180deg, #FFFFFF 20%, #CBD3E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game-title span {
+      background: linear-gradient(90deg, var(--orange), #FF8A00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+
+    .hint-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 22px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #D5DCE8;
+    }
+
+    .hint-box strong {
+      color: var(--lime);
+    }
+
+    .loot-legend {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .loot-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot-lime {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 8px var(--lime);
+    }
+
+    .dot-gold {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
+    }
+
+    /* Статистика на экране Game Over */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 16px 0 14px;
+    }
+
+    .stat-tile {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 12px 10px;
+    }
+
+    .stat-tile-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-tile-value {
+      font-size: 26px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+    }
+
+    .stat-tile-value.lime {
+      color: var(--lime);
+    }
+
+    .new-record-badge {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(255, 208, 0, 0.16);
+      border: 1px solid rgba(255, 208, 0, 0.5);
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .new-record-badge.hidden {
+      display: none;
+    }
+
+    .achieved-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      border-radius: 14px;
+      background: rgba(255, 85, 0, 0.14);
+      border: 1px solid rgba(255, 85, 0, 0.4);
+      font-size: 13px;
+      font-weight: 800;
+      color: #FF945E;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Кнопки */
+    .btn-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 15px 20px;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange) 0%, #FF7A00 100%);
+      color: #FFFFFF;
+      box-shadow: 0 10px 26px var(--orange-glow);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.06);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #D0D7E3;
+      padding: 13px 20px;
+      font-size: 13px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Игровой Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Верхний HUD -->
+    <div class="hud">
+      <div class="hud-left">
+        <div class="score-card">
+          <div class="score-block">
+            <span class="score-label">Счёт</span>
+            <span class="score-value" id="hudScore">0</span>
+          </div>
+          <div class="score-block">
+            <span class="score-label">Рекорд</span>
+            <span class="score-value best" id="hudBest">0</span>
+          </div>
+        </div>
+        <div class="rank-pill" id="hudRankPill">
+          <span class="rank-dot"></span>
+          <span id="hudRank">Новичок</span>
+        </div>
+      </div>
+
+      <button class="sound-btn" id="soundBtn" aria-label="Звук" title="Включить/выключить звук">
+        <!-- SVG иконка звука -->
+        <svg id="soundIconOn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <svg id="soundIconOff" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Всплывающий тост при повышении ранга -->
+    <div class="rank-toast" id="rankToast">НОВЫЙ РАНГ: В ИГРЕ</div>
+
+    <!-- Нижняя панель управления (кнопка ПРИСЕД) -->
+    <div class="controls-bar" id="controlsBar">
+      <div class="tap-hint-mini">Тап — прыжок ×2</div>
+      <button class="slide-btn" id="slideBtn" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        ПРИСЕД
+      </button>
+    </div>
+
+    <!-- Экран СТАРТ -->
+    <div class="overlay" id="startOverlay">
+      <div class="card">
+        <div class="brand-tag">ROB ATHLETIC SYSTEM</div>
+        <h1 class="game-title">OCR <span>NINJA</span> RUN</h1>
+        <p class="subtitle">Преодолей полосу препятствий, держи темп и забери звание Суперниндзя.</p>
+
+        <div class="hint-box">
+          <strong>Тап</strong> — прыжок / двойной прыжок<br />
+          <strong>Свайп вниз</strong> или кнопка — подкат
+          <div class="loot-legend">
+            <span class="loot-item"><span class="dot-lime"></span>Магнезия +15</span>
+            <span class="loot-item"><span class="dot-gold"></span>Браслет +50</span>
+          </div>
+        </div>
+
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="startBtn" type="button">СТАРТ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Экран GAME OVER -->
+    <div class="overlay hidden" id="gameOverOverlay">
+      <div class="card">
+        <div class="brand-tag">ФИНИШ ПОПЫТКИ</div>
+        <h2 class="game-title" style="font-size: 27px;">ЗАБЕГ <span>ОКОНЧЕН</span></h2>
+
+        <div class="new-record-badge hidden" id="newRecordBadge">★ НОВЫЙ РЕКОРД ★</div>
+
+        <div class="stats-grid">
+          <div class="stat-tile">
+            <div class="stat-tile-label">Твой счёт</div>
+            <div class="stat-tile-value" id="finalScore">0</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Лучший</div>
+            <div class="stat-tile-value lime" id="finalBest">0</div>
+          </div>
+        </div>
+
+        <div class="achieved-rank">
+          <span class="rank-dot"></span>
+          <span id="finalRank">Ранг: Новичок</span>
+        </div>
+
+        <div class="btn-stack">
+          <button class="btn btn-primary" id="restartBtn" type="button">НОВАЯ ПОПЫТКА</button>
+          <button class="btn btn-secondary" id="closeBtn" type="button">ЗАКРЫТЬ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* ========================================================================
+         1. БЕЗОПАСНАЯ ИНТЕГРАЦИЯ TELEGRAM WEBAPP
+         ======================================================================== */
+      const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+      function initTelegram() {
+        if (!tg) return;
+        try {
+          tg.ready();
+          tg.expand();
+          if (typeof tg.disableVerticalSwipes === 'function') {
+            tg.disableVerticalSwipes();
+          }
+          if (typeof tg.setHeaderColor === 'function') {
+            tg.setHeaderColor('#0B0D12');
+          }
+          if (typeof tg.setBackgroundColor === 'function') {
+            tg.setBackgroundColor('#0B0D12');
+          }
+        } catch (err) {
+          // Безопасный фолбэк в браузере или старой версии клиента
+        }
+      }
+
+      function hapticImpact(style) {
+        try {
+          if (tg && tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
+            tg.HapticFeedback.impactOccurred(style || 'light');
+          }
+        } catch (e) {}
+      }
+
+      function hapticNotify(type) {
+        try {
+          if (tg && tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') {
+            tg.HapticFeedback.notificationOccurred(type || 'error');
+          }
+        } catch (e) {}
+      }
+
+      /* ========================================================================
+         2. СИНТЕЗАТОР ЗВУКОВ (WEB AUDIO API — БЕЗ ВНЕШНИХ ФАЙЛОВ)
+         ======================================================================== */
+      const Sound = {
+        ctx: null,
+        muted: false,
+
+        init() {
+          if (this.ctx) return;
+          try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          } catch (e) {}
+        },
+
+        unlock() {
+          this.init();
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        },
+
+        playTone(freqStart, freqEnd, duration, type, gainVal) {
+          if (this.muted) return;
+          this.unlock();
+          if (!this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type || 'triangle';
+            osc.frequency.setValueAtTime(freqStart, now);
+            osc.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), now + duration);
+
+            gain.gain.setValueAtTime(gainVal || 0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+          } catch (e) {}
+        },
+
+        jump() {
+          this.playTone(230, 560, 0.13, 'triangle', 0.14);
+        },
+
+        doubleJump() {
+          this.playTone(360, 860, 0.15, 'sine', 0.14);
+          setTimeout(() => this.playTone(520, 1040, 0.1, 'triangle', 0.08), 40);
+        },
+
+        slide() {
+          this.playTone(180, 75, 0.14, 'sawtooth', 0.07);
+        },
+
+        collectChalk() {
+          this.playTone(620, 920, 0.09, 'sine', 0.12);
+          setTimeout(() => this.playTone(920, 1320, 0.11, 'triangle', 0.11), 55);
+        },
+
+        collectGold() {
+          this.playTone(740, 1100, 0.1, 'sine', 0.14);
+          setTimeout(() => this.playTone(980, 1480, 0.12, 'triangle', 0.13), 65);
+          setTimeout(() => this.playTone(1320, 1980, 0.16, 'sine', 0.12), 130);
+        },
+
+        rankUp() {
+          this.playTone(440, 660, 0.12, 'triangle', 0.12);
+          setTimeout(() => this.playTone(660, 880, 0.14, 'triangle', 0.12), 90);
+          setTimeout(() => this.playTone(880, 1320, 0.22, 'sine', 0.13), 180);
+        },
+
+        crash() {
+          this.playTone(170, 38, 0.28, 'sawtooth', 0.2);
+          this.playTone(110, 32, 0.32, 'square', 0.1);
+        }
+      };
+
+      /* ========================================================================
+         3. РАНГИ И ХРАНЕНИЕ РЕКОРДА
+         ======================================================================== */
+      const RANKS = [
+        { min: 0,    name: 'Новичок' },
+        { min: 300,  name: 'В игре' },
+        { min: 700,  name: 'Пора на старт' },
+        { min: 1200, name: 'Готов к большему' },
+        { min: 2000, name: 'КМС по OCR' },
+        { min: 3500, name: 'Суперниндзя' }
+      ];
+
+      function getRank(score) {
+        let current = RANKS[0];
+        for (let i = 0; i < RANKS.length; i++) {
+          if (score >= RANKS[i].min) current = RANKS[i];
+        }
+        return current;
+      }
+
+      const STORAGE_KEY = 'rob_ocr_ninja_best_v1';
+      let bestScore = 0;
+      try {
+        bestScore = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10) || 0;
+      } catch (e) {
+        bestScore = 0;
+      }
+
+      function saveBestScore(val) {
+        bestScore = val;
+        try {
+          localStorage.setItem(STORAGE_KEY, String(bestScore));
+        } catch (e) {}
+      }
+
+      /* ========================================================================
+         4. DOM-ЭЛЕМЕНТЫ И CANVAS
+         ======================================================================== */
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const hudScore = document.getElementById('hudScore');
+      const hudBest = document.getElementById('hudBest');
+      const hudRank = document.getElementById('hudRank');
+      const rankToast = document.getElementById('rankToast');
+      const controlsBar = document.getElementById('controlsBar');
+      const slideBtn = document.getElementById('slideBtn');
+
+      const startOverlay = document.getElementById('startOverlay');
+      const gameOverOverlay = document.getElementById('gameOverOverlay');
+      const startBtn = document.getElementById('startBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const closeBtn = document.getElementById('closeBtn');
+
+      const finalScoreEl = document.getElementById('finalScore');
+      const finalBestEl = document.getElementById('finalBest');
+      const finalRankEl = document.getElementById('finalRank');
+      const newRecordBadge = document.getElementById('newRecordBadge');
+
+      const soundBtn = document.getElementById('soundBtn');
+      const soundIconOn = document.getElementById('soundIconOn');
+      const soundIconOff = document.getElementById('soundIconOff');
+
+      /* ========================================================================
+         5. ПАРАМЕТРЫ ЭКРАНА И СОСТОЯНИЕ ИГРЫ
+         ======================================================================== */
+      let W = window.innerWidth;
+      let H = window.innerHeight;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let S = 1; // Адаптивный масштаб под разные экраны
+      let groundY = H * 0.76;
+
+      let state = 'start'; // 'start' | 'playing' | 'gameover'
+      let score = 0;
+      let distancePoints = 0;
+      let bonusPoints = 0;
+      let currentRankName = RANKS[0].name;
+      let rankToastTimer = null;
+
+      let baseSpeed = 360;
+      let speed = baseSpeed;
+      let gameTime = 0;
+      let shakeTime = 0;
+      let shakeIntensity = 0;
+      let hitFlash = 0;
+
+      // Списки сущностей
+      let obstacles = [];
+      let collectibles = [];
+      let particles = [];
+      let popups = [];
+      let spawnTimer = 0;
+      let bgScrollFar = 0;
+      let bgScrollMid = 0;
+      let bgScrollNear = 0;
+
+      // Игрок (Ниндзя-атлет)
+      const player = {
+        x: 90,
+        y: 0,
+        vy: 0,
+        width: 34,
+        height: 70,
+        slideHeight: 34,
+        onGround: true,
+        jumpsUsed: 0,
+        isSliding: false,
+        slideTimer: 0,
+        flipAngle: 0,
+        isFlipping: false,
+        runCycle: 0,
+        ribbon: [],
+        afterimages: []
+      };
+
+      function resizeCanvas() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        // Масштабируем пропорции игры для комфортной игры на телефонах и ПК
+        S = Math.max(0.75, Math.min(1.18, Math.min(W / 400, H / 680)));
+        groundY = Math.floor(H * 0.76);
+
+        player.x = Math.max(58, Math.min(W * 0.21, 145));
+        player.width = 32 * S;
+        player.height = 68 * S;
+        player.slideHeight = 32 * S;
+
+        if (player.onGround || state !== 'playing') {
+          player.y = groundY;
+        }
+      }
+
+      /* ========================================================================
+         6. УПРАВЛЕНИЕ И ДЕЙСТВИЯ ИГРОКА
+         ======================================================================== */
+      function resetGame() {
+        score = 0;
+        distancePoints = 0;
+        bonusPoints = 0;
+        currentRankName = RANKS[0].name;
+        gameTime = 0;
+        baseSpeed = 370 * S;
+        speed = baseSpeed;
+        shakeTime = 0;
+        hitFlash = 0;
+
+        obstacles = [];
+        collectibles = [];
+        particles = [];
+        popups = [];
+        spawnTimer = 0.85;
+
+        player.y = groundY;
+        player.vy = 0;
+        player.onGround = true;
+        player.jumpsUsed = 0;
+        player.isSliding = false;
+        player.slideTimer = 0;
+        player.flipAngle = 0;
+        player.isFlipping = false;
+        player.runCycle = 0;
+        player.afterimages = [];
+        player.ribbon = [];
+        for (let i = 0; i < 8; i++) {
+          player.ribbon.push({ x: player.x - i * 6 * S, y: groundY - player.height + 10 * S });
+        }
+
+        updateHUD();
+      }
+
+      function startGame() {
+        Sound.unlock();
+        resetGame();
+        state = 'playing';
+        startOverlay.classList.add('hidden');
+        gameOverOverlay.classList.add('hidden');
+        controlsBar.classList.add('visible');
+        hapticImpact('medium');
+      }
+
+      function triggerGameOver() {
+        state = 'gameover';
+        controlsBar.classList.remove('visible');
+        shakeTime = 0.35;
+        shakeIntensity = 12 * S;
+        hitFlash = 0.65;
+
+        Sound.crash();
+        hapticNotify('error');
+
+        // Взрыв частиц при столкновении
+        spawnParticles(player.x + player.width * 0.4, player.y - player.height * 0.45, '#FF5500', 22, 1.3);
+        spawnParticles(player.x + player.width * 0.4, player.y - player.height * 0.45, '#B8FF00', 12, 1.1);
+
+        const finalVal = Math.floor(score);
+        let isNewRecord = false;
+        if (finalVal > bestScore) {
+          saveBestScore(finalVal);
+          isNewRecord = true;
+        }
+
+        const rankObj = getRank(finalVal);
+        finalScoreEl.textContent = finalVal;
+        finalBestEl.textContent = bestScore;
+        finalRankEl.textContent = 'Ранг: ' + rankObj.name;
+        hudBest.textContent = bestScore;
+
+        if (isNewRecord && finalVal > 0) {
+          newRecordBadge.classList.remove('hidden');
+        } else {
+          newRecordBadge.classList.add('hidden');
+        }
+
+        setTimeout(() => {
+          if (state === 'gameover') {
+            gameOverOverlay.classList.remove('hidden');
+          }
+        }, 380);
+      }
+
+      function doJump() {
+        if (state !== 'playing') return;
+
+        // Прерываем подкат при прыжке
+        if (player.isSliding) {
+          player.isSliding = false;
+          player.slideTimer = 0;
+        }
+
+        if (player.onGround) {
+          player.vy = -790 * S;
+          player.onGround = false;
+          player.jumpsUsed = 1;
+          player.isFlipping = false;
+          player.flipAngle = 0;
+          Sound.jump();
+          hapticImpact('light');
+          spawnParticles(player.x, groundY, '#B8FF00', 8, 0.75);
+        } else if (player.jumpsUsed < 2) {
+          // Двойной прыжок с сальто-переворотом
+          player.vy = -700 * S;
+          player.jumpsUsed = 2;
+          player.isFlipping = true;
+          player.flipAngle = 0;
+          Sound.doubleJump();
+          hapticImpact('medium');
+          spawnParticles(player.x, player.y - 10 * S, '#FF5500', 12, 0.9);
+        }
+      }
+
+      function doSlide() {
+        if (state !== 'playing') return;
+
+        if (!player.onGround) {
+          // Быстрый спуск (fast-fall) в подкат
+          player.vy = Math.max(player.vy, 1150 * S);
+          player.isFlipping = false;
+          player.flipAngle = 0;
+        }
+
+        if (!player.isSliding) {
+          Sound.slide();
+          hapticImpact('light');
+        }
+        player.isSliding = true;
+        player.slideTimer = 0.62;
+        slideBtn.classList.add('active');
+        setTimeout(() => slideBtn.classList.remove('active'), 180);
+      }
+
+      function showRankToast(rankName) {
+        rankToast.textContent = 'НОВЫЙ РАНГ: ' + rankName.toUpperCase();
+        rankToast.classList.add('show');
+        if (rankToastTimer) clearTimeout(rankToastTimer);
+        rankToastTimer = setTimeout(() => {
+          rankToast.classList.remove('show');
+        }, 2100);
+      }
+
+      function updateHUD() {
+        const val = Math.floor(score);
+        hudScore.textContent = val;
+        hudBest.textContent = Math.max(bestScore, val);
+
+        const rankObj = getRank(val);
+        if (rankObj.name !== currentRankName) {
+          currentRankName = rankObj.name;
+          hudRank.textContent = currentRankName;
+          if (state === 'playing' && val > 0) {
+            Sound.rankUp();
+            hapticNotify('success');
+            showRankToast(currentRankName);
+          }
+        } else {
+          hudRank.textContent = currentRankName;
+        }
+      }
+
+      /* ========================================================================
+         7. ГЕНЕРАЦИЯ ПРЕПЯТСТВИЙ И БОНУСОВ
+         ======================================================================== */
+      function spawnObstaclePattern() {
+        const roll = Math.random();
+        const startX = W + 70 * S;
+        let obs;
+
+        if (roll < 0.42) {
+          // Низкий барьер OCR (одинарный прыжок)
+          obs = {
+            type: 'hurdle',
+            x: startX,
+            w: 32 * S,
+            h: 46 * S,
+            y: groundY - 46 * S
+          };
+          obstacles.push(obs);
+
+          // Иногда ставим магнезию над барьером
+          if (Math.random() < 0.65) {
+            spawnCollectible(startX + 16 * S, groundY - 108 * S, Math.random() < 0.16 ? 'gold' : 'chalk');
+          }
+        } else if (roll < 0.72) {
+          // Высокая рампа / стена OCR (нужен двойной прыжок)
+          obs = {
+            type: 'wall',
+            x: startX,
+            w: 44 * S,
+            h: 106 * S,
+            y: groundY - 106 * S
+          };
+          obstacles.push(obs);
+
+          // Награда на пике двойного прыжка
+          if (Math.random() < 0.72) {
+            spawnCollectible(startX + 22 * S, groundY - 168 * S, Math.random() < 0.32 ? 'gold' : 'chalk');
+          }
+        } else {
+          // Подвесная рама / рукоход с кольцами (нужен подкат)
+          const clearance = 42 * S; // Стоящий игрок (68*S) ударится, в подкате (32*S) проскочит
+          const beamW = (108 + Math.random() * 44) * S;
+          const beamH = 44 * S;
+          obs = {
+            type: 'overhead',
+            x: startX,
+            w: beamW,
+            h: beamH,
+            y: groundY - clearance - beamH,
+            clearance: clearance
+          };
+          obstacles.push(obs);
+
+          // Магнезия под рукоходом для награды за подкат
+          if (Math.random() < 0.75) {
+            spawnCollectible(startX + beamW * 0.5, groundY - 22 * S, Math.random() < 0.2 ? 'gold' : 'chalk');
+          }
+        }
+
+        // Дополнительный бонус на дорожке между препятствиями
+        if (Math.random() < 0.35) {
+          spawnCollectible(startX + 190 * S, groundY - (36 + Math.random() * 55) * S, Math.random() < 0.14 ? 'gold' : 'chalk');
+        }
+      }
+
+      function spawnCollectible(x, y, kind) {
+        collectibles.push({
+          kind: kind, // 'chalk' (+15) | 'gold' (+50)
+          x: x,
+          y: y,
+          baseY: y,
+          r: (kind === 'gold' ? 14 : 12) * S,
+          phase: Math.random() * Math.PI * 2,
+          collected: false
+        });
+      }
+
+      function spawnParticles(x, y, color, count, speedMul) {
+        const mul = speedMul || 1;
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = (70 + Math.random() * 240) * S * mul;
+          particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd - 40 * S,
+            size: (2.5 + Math.random() * 4) * S,
+            color: color,
+            life: 0.32 + Math.random() * 0.35,
+            maxLife: 0.65
+          });
+        }
+      }
+
+      function spawnPopup(x, y, text, color) {
+        popups.push({
+          x: x,
+          y: y,
+          text: text,
+          color: color,
+          life: 0.75,
+          maxLife: 0.75
+        });
+      }
+
+      /* ========================================================================
+         8. ИГРОВОЙ ЦИКЛ (ОБНОВЛЕНИЕ ФИЗИКИ)
+         ======================================================================== */
+      function update(dt) {
+        if (shakeTime > 0) shakeTime = Math.max(0, shakeTime - dt);
+        if (hitFlash > 0) hitFlash = Math.max(0, hitFlash - dt * 2.2);
+
+        // Обновление частиц даже после Game Over
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vy += 650 * S * dt;
+          p.life -= dt;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        for (let i = popups.length - 1; i >= 0; i--) {
+          const pop = popups[i];
+          pop.y -= 58 * S * dt;
+          pop.life -= dt;
+          if (pop.life <= 0) popups.splice(i, 1);
+        }
+
+        if (state !== 'playing') {
+          // Лёгкая анимация фона на экране старта
+          bgScrollFar += 18 * S * dt;
+          bgScrollMid += 42 * S * dt;
+          bgScrollNear += 110 * S * dt;
+          player.runCycle += dt * 7;
+          updateRibbon(dt, 140 * S);
+          return;
+        }
+
+        gameTime += dt;
+
+        // Плавное ускорение темпа со временем
+        const speedMultiplier = Math.min(2.15, 1 + gameTime * 0.017);
+        speed = baseSpeed * speedMultiplier;
+
+        // Параллакс
+        bgScrollFar += speed * 0.14 * dt;
+        bgScrollMid += speed * 0.38 * dt;
+        bgScrollNear += speed * dt;
+
+        // Начисление очков за дистанцию
+        distancePoints += (speed / S) * dt * 0.048;
+        score = distancePoints + bonusPoints;
+        updateHUD();
+
+        // Физика игрока
+        const gravity = 2350 * S;
+        player.vy += gravity * dt;
+        player.y += player.vy * dt;
+
+        if (player.y >= groundY) {
+          player.y = groundY;
+          player.vy = 0;
+          player.onGround = true;
+          player.jumpsUsed = 0;
+          player.isFlipping = false;
+          player.flipAngle = 0;
+        }
+
+        // Таймер подката
+        if (player.isSliding) {
+          player.slideTimer -= dt;
+          if (player.onGround && Math.random() < 0.55) {
+            spawnParticles(player.x - 10 * S, groundY - 2 * S, '#FF5500', 1, 0.35);
+          }
+          if (player.slideTimer <= 0) {
+            player.isSliding = false;
+          }
+        }
+
+        // Вращение при двойном прыжке
+        if (player.isFlipping) {
+          player.flipAngle += dt * Math.PI * 4.4;
+          if (player.flipAngle >= Math.PI * 2) {
+            player.flipAngle = 0;
+            player.isFlipping = false;
+          }
+          // След движения
+          player.afterimages.push({
+            x: player.x,
+            y: player.y - player.height * 0.5,
+            alpha: 0.45
+          });
+        }
+
+        for (let i = player.afterimages.length - 1; i >= 0; i--) {
+          player.afterimages[i].x -= speed * 0.45 * dt;
+          player.afterimages[i].alpha -= dt * 2.4;
+          if (player.afterimages[i].alpha <= 0) player.afterimages.splice(i, 1);
+        }
+
+        // Анимация бега
+        player.runCycle += dt * (11.5 * Math.sqrt(speedMultiplier));
+        updateRibbon(dt, speed);
+
+        // Спавн препятствий
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          spawnObstaclePattern();
+          const minGap = Math.max(0.72, 1.38 - gameTime * 0.011);
+          const maxGap = Math.max(1.05, 1.95 - gameTime * 0.013);
+          spawnTimer = minGap + Math.random() * (maxGap - minGap);
+        }
+
+        // Хитбокс игрока (немного сужен для честного аркадного ощущения)
+        const activeH = player.isSliding ? player.slideHeight : player.height;
+        const pBox = {
+          x: player.x - player.width * 0.36,
+          y: player.y - activeH + 5 * S,
+          w: player.width * 0.72,
+          h: activeH - 7 * S
+        };
+
+        // Обновление препятствий и проверка столкновений
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const o = obstacles[i];
+          o.x -= speed * dt;
+
+          // Слегка прощающий хитбокс препятствия
+          const pad = 4 * S;
+          if (
+            pBox.x < o.x + o.w - pad &&
+            pBox.x + pBox.w > o.x + pad &&
+            pBox.y < o.y + o.h - pad &&
+            pBox.y + pBox.h > o.y + pad
+          ) {
+            triggerGameOver();
+            return;
+          }
+
+          if (o.x + o.w < -80 * S) {
+            obstacles.splice(i, 1);
+          }
+        }
+
+        // Обновление бонусов
+        for (let i = collectibles.length - 1; i >= 0; i--) {
+          const c = collectibles[i];
+          c.x -= speed * dt;
+          c.phase += dt * 5.2;
+          c.y = c.baseY + Math.sin(c.phase) * 5 * S;
+
+          // Проверка сбора
+          const cx = pBox.x + pBox.w * 0.5;
+          const cy = pBox.y + pBox.h * 0.5;
+          const dx = cx - c.x;
+          const dy = cy - c.y;
+          const hitDist = c.r + Math.max(pBox.w, pBox.h) * 0.52;
+
+          if (dx * dx + dy * dy <= hitDist * hitDist) {
+            const pts = c.kind === 'gold' ? 50 : 15;
+            bonusPoints += pts;
+            score = distancePoints + bonusPoints;
+            updateHUD();
+
+            if (c.kind === 'gold') {
+              Sound.collectGold();
+              hapticImpact('medium');
+              spawnParticles(c.x, c.y, '#FFD000', 18, 1.0);
+              spawnPopup(c.x, c.y - 10 * S, '+50', '#FFD000');
+            } else {
+              Sound.collectChalk();
+              hapticImpact('light');
+              spawnParticles(c.x, c.y, '#B8FF00', 11, 0.8);
+              spawnPopup(c.x, c.y - 10 * S, '+15', '#B8FF00');
+            }
+            collectibles.splice(i, 1);
+            continue;
+          }
+
+          if (c.x < -60 * S) {
+            collectibles.splice(i, 1);
+          }
+        }
+      }
+
+      function updateRibbon(dt, flowSpeed) {
+        const activeH = player.isSliding ? player.slideHeight : player.height;
+        const headX = player.x + (player.isSliding ? 6 * S : 2 * S);
+        const headY = player.y - activeH + (player.isSliding ? 9 * S : 12 * S);
+
+        if (!player.ribbon.length) return;
+        player.ribbon[0].x = headX - 6 * S;
+        player.ribbon[0].y = headY;
+
+        for (let i = 1; i < player.ribbon.length; i++) {
+          const prev = player.ribbon[i - 1];
+          const curr = player.ribbon[i];
+          curr.x -= flowSpeed * 0.55 * dt;
+          curr.y += Math.sin(gameTime * 16 + i * 0.9) * 32 * S * dt;
+          const dx = curr.x - prev.x;
+          const dy = curr.y - prev.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const segLen = 5.5 * S;
+          if (dist > segLen) {
+            curr.x = prev.x + (dx / dist) * segLen;
+            curr.y = prev.y + (dy / dist) * segLen;
+          }
+        }
+      }
+
+      /* ========================================================================
+         9. ОТРИСОВКА (60FPS CANVAS)
+         ======================================================================== */
+      function draw() {
+        ctx.save();
+
+        // Тряска камеры при столкновении
+        if (shakeTime > 0) {
+          const mag = shakeIntensity * (shakeTime / 0.35);
+          ctx.translate((Math.random() - 0.5) * mag * 2, (Math.random() - 0.5) * mag * 2);
+        }
+
+        drawBackground();
+        drawTrack();
+        drawObstacles();
+        drawCollectibles();
+        drawPlayer();
+        drawParticles();
+        drawPopups();
+
+        // Красная/оранжевая вспышка при столкновении
+        if (hitFlash > 0) {
+          ctx.fillStyle = `rgba(255, 65, 0, ${hitFlash * 0.32})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        ctx.restore();
+      }
+
+      function drawBackground() {
+        // Глубокий спортивно-кибернетический фон арены
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#07090D');
+        grad.addColorStop(0.55, '#0D111A');
+        grad.addColorStop(1, '#121622');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Прожекторы стадиона
+        const spot1 = ctx.createRadialGradient(W * 0.25, H * 0.14, 10, W * 0.25, H * 0.14, W * 0.55);
+        spot1.addColorStop(0, 'rgba(255, 85, 0, 0.12)');
+        spot1.addColorStop(1, 'rgba(255, 85, 0, 0)');
+        ctx.fillStyle = spot1;
+        ctx.fillRect(0, 0, W, H);
+
+        const spot2 = ctx.createRadialGradient(W * 0.82, H * 0.2, 10, W * 0.82, H * 0.2, W * 0.5);
+        spot2.addColorStop(0, 'rgba(184, 255, 0, 0.08)');
+        spot2.addColorStop(1, 'rgba(184, 255, 0, 0)');
+        ctx.fillStyle = spot2;
+        ctx.fillRect(0, 0, W, H);
+
+        // Дальний параллакс: фермы и арки OCR-зала
+        const farSpan = 220 * S;
+        const farOffset = bgScrollFar % farSpan;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.045)';
+        ctx.lineWidth = 2 * S;
+        for (let x = -farOffset; x < W + farSpan; x += farSpan) {
+          // Вертикальная колонна
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, groundY);
+          ctx.stroke();
+
+          // Диагональная ферма сверху
+          ctx.beginPath();
+          ctx.moveTo(x, H * 0.18);
+          ctx.lineTo(x + farSpan, H * 0.18);
+          ctx.moveTo(x, H * 0.18);
+          ctx.lineTo(x + farSpan * 0.5, H * 0.06);
+          ctx.lineTo(x + farSpan, H * 0.18);
+          ctx.stroke();
+        }
+
+        // Средний параллакс: силуэты ниндзя-рам и подвесных колец
+        const midSpan = 280 * S;
+        const midOffset = bgScrollMid % midSpan;
+        for (let x = -midOffset; x < W + midSpan; x += midSpan) {
+          ctx.fillStyle = 'rgba(20, 26, 38, 0.72)';
+          ctx.fillRect(x, groundY - 190 * S, 10 * S, 190 * S);
+          ctx.fillRect(x + 120 * S, groundY - 190 * S, 10 * S, 190 * S);
+          ctx.fillRect(x - 6 * S, groundY - 194 * S, 142 * S, 9 * S);
+
+          // Декоративные кольца на фоне
+          ctx.strokeStyle = 'rgba(255, 85, 0, 0.16)';
+          ctx.lineWidth = 2 * S;
+          for (let r = 0; r < 3; r++) {
+            const rx = x + (30 + r * 35) * S;
+            ctx.beginPath();
+            ctx.moveTo(rx, groundY - 185 * S);
+            ctx.lineTo(rx, groundY - 155 * S);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(rx, groundY - 148 * S, 6 * S, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function drawTrack() {
+        // Поверхность беговой дорожки
+        const floorGrad = ctx.createLinearGradient(0, groundY, 0, H);
+        floorGrad.addColorStop(0, '#161B26');
+        floorGrad.addColorStop(1, '#090B10');
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, groundY, W, H - groundY);
+
+        // Светящаяся неоновая линия трассы
+        ctx.save();
+        ctx.shadowColor = 'rgba(255, 85, 0, 0.65)';
+        ctx.shadowBlur = 12 * S;
+        ctx.fillStyle = '#FF5500';
+        ctx.fillRect(0, groundY, W, 3 * S);
+        ctx.restore();
+
+        // Бегущая разметка дистанции
+        const tickSpan = 64 * S;
+        const offset = bgScrollNear % tickSpan;
+        ctx.fillStyle = 'rgba(184, 255, 0, 0.18)';
+        for (let x = -offset; x < W + tickSpan; x += tickSpan) {
+          ctx.fillRect(x, groundY + 14 * S, 24 * S, 3 * S);
+        }
+
+        // Тонкая сетка перспективы
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+        for (let x = -(bgScrollNear * 1.25 % (tickSpan * 1.5)); x < W + tickSpan * 2; x += tickSpan * 1.5) {
+          ctx.fillRect(x, groundY + 34 * S, 42 * S, 2 * S);
+        }
+      }
+
+      function drawObstacles() {
+        for (let i = 0; i < obstacles.length; i++) {
+          const o = obstacles[i];
+
+          if (o.type === 'hurdle') {
+            // Барьер OCR
+            ctx.save();
+            ctx.fillStyle = '#1D2330';
+            ctx.fillRect(o.x, o.y, o.w, o.h);
+
+            // Оранжевая светящаяся перекладина
+            ctx.shadowColor = 'rgba(255, 85, 0, 0.7)';
+            ctx.shadowBlur = 12 * S;
+            ctx.fillStyle = '#FF5500';
+            ctx.fillRect(o.x - 3 * S, o.y, o.w + 6 * S, 10 * S);
+            ctx.shadowBlur = 0;
+
+            // Диагональные спортивные полосы
+            ctx.fillStyle = 'rgba(184, 255, 0, 0.85)';
+            ctx.fillRect(o.x + 5 * S, o.y + 18 * S, o.w - 10 * S, 5 * S);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
+            ctx.fillRect(o.x + 3 * S, o.y + o.h - 6 * S, o.w - 6 * S, 6 * S);
+            ctx.restore();
+          } else if (o.type === 'wall') {
+            // Высокая рампа / стена OCR (двойной прыжок)
+            ctx.save();
+            const wallGrad = ctx.createLinearGradient(o.x, o.y, o.x, o.y + o.h);
+            wallGrad.addColorStop(0, '#262E3F');
+            wallGrad.addColorStop(1, '#131722');
+            ctx.fillStyle = wallGrad;
+
+            // Скошенная верхняя грань как у OCR-рампы
+            ctx.beginPath();
+            ctx.moveTo(o.x + 6 * S, o.y);
+            ctx.lineTo(o.x + o.w, o.y);
+            ctx.lineTo(o.x + o.w, o.y + o.h);
+            ctx.lineTo(o.x, o.y + o.h);
+            ctx.closePath();
+            ctx.fill();
+
+            // Неоновая кромка
+            ctx.shadowColor = 'rgba(255, 85, 0, 0.8)';
+            ctx.shadowBlur = 14 * S;
+            ctx.fillStyle = '#FF5500';
+            ctx.fillRect(o.x + 4 * S, o.y, o.w - 4 * S, 7 * S);
+            ctx.shadowBlur = 0;
+
+            // Зацепы / метки «×2»
+            ctx.fillStyle = 'rgba(184, 255, 0, 0.8)';
+            for (let g = 0; g < 3; g++) {
+              ctx.fillRect(o.x + 10 * S, o.y + (24 + g * 24) * S, o.w - 18 * S, 4 * S);
+            }
+            ctx.restore();
+          } else if (o.type === 'overhead') {
+            // Подвесная конструкция / рукоход (подкат)
+            ctx.save();
+
+            // Тросы к потолку
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 2.5 * S;
+            ctx.beginPath();
+            ctx.moveTo(o.x + 14 * S, 0);
+            ctx.lineTo(o.x + 14 * S, o.y);
+            ctx.moveTo(o.x + o.w - 14 * S, 0);
+            ctx.lineTo(o.x + o.w - 14 * S, o.y);
+            ctx.stroke();
+
+            // Корпус балки
+            ctx.fillStyle = '#1E2433';
+            ctx.fillRect(o.x, o.y, o.w, o.h * 0.62);
+
+            // Светящаяся нижняя кромка предупреждения
+            ctx.shadowColor = 'rgba(255, 85, 0, 0.75)';
+            ctx.shadowBlur = 12 * S;
+            ctx.fillStyle = '#FF5500';
+            ctx.fillRect(o.x, o.y + o.h * 0.62, o.w, 6 * S);
+            ctx.shadowBlur = 0;
+
+            // Подвесные кольца ниндзя вдоль балки
+            const ringCount = Math.max(3, Math.floor(o.w / (32 * S)));
+            ctx.strokeStyle = '#B8FF00';
+            ctx.lineWidth = 2.5 * S;
+            for (let r = 0; r < ringCount; r++) {
+              const rx = o.x + (o.w / (ringCount + 1)) * (r + 1);
+              ctx.beginPath();
+              ctx.arc(rx, o.y + o.h - 7 * S, 6.5 * S, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+
+            ctx.restore();
+          }
+        }
+      }
+
+      function drawCollectibles() {
+        for (let i = 0; i < collectibles.length; i++) {
+          const c = collectibles[i];
+          ctx.save();
+          ctx.translate(c.x, c.y);
+
+          if (c.kind === 'chalk') {
+            // Жидкая магнезия / энергетическая искра (+15)
+            ctx.shadowColor = 'rgba(184, 255, 0, 0.85)';
+            ctx.shadowBlur = 14 * S;
+            ctx.fillStyle = '#B8FF00';
+
+            ctx.beginPath();
+            ctx.moveTo(0, -c.r);
+            ctx.lineTo(c.r * 0.78, 0);
+            ctx.lineTo(0, c.r);
+            ctx.lineTo(-c.r * 0.78, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(0, 0, c.r * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            // Редкий золотой браслет финишёра (+50)
+            ctx.shadowColor = 'rgba(255, 208, 0, 0.9)';
+            ctx.shadowBlur = 16 * S;
+            ctx.strokeStyle = '#FFD000';
+            ctx.lineWidth = 4.5 * S;
+            ctx.beginPath();
+            ctx.arc(0, 0, c.r * 0.82, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = 'rgba(255, 208, 0, 0.25)';
+            ctx.beginPath();
+            ctx.arc(0, 0, c.r * 0.52, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Блик
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(-c.r * 0.35, -c.r * 0.35, 2.5 * S, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+      }
+
+      function drawPlayer() {
+        // Шлейф при двойном прыжке
+        for (let i = 0; i < player.afterimages.length; i++) {
+          const img = player.afterimages[i];
+          ctx.save();
+          ctx.fillStyle = `rgba(255, 85, 0, ${img.alpha * 0.5})`;
+          ctx.beginPath();
+          ctx.arc(img.x, img.y, 16 * S, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Развевающаяся лента повязки ниндзя
+        if (player.ribbon.length > 1) {
+          ctx.save();
+          ctx.strokeStyle = '#FF5500';
+          ctx.lineWidth = 4.2 * S;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.shadowColor = 'rgba(255, 85, 0, 0.75)';
+          ctx.shadowBlur = 8 * S;
+          ctx.beginPath();
+          ctx.moveTo(player.ribbon[0].x, player.ribbon[0].y);
+          for (let i = 1; i < player.ribbon.length; i++) {
+            ctx.lineTo(player.ribbon[i].x, player.ribbon[i].y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Тень на земле
+        const airFactor = Math.max(0.25, 1 - (groundY - player.y) / (220 * S));
+        ctx.save();
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.42 * airFactor})`;
+        ctx.beginPath();
+        ctx.ellipse(player.x, groundY + 3 * S, 20 * S * airFactor, 4.5 * S * airFactor, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Рисуем самого ниндзя-атлета
+        ctx.save();
+        const activeH = player.isSliding ? player.slideHeight : player.height;
+        const centerY = player.y - activeH * 0.5;
+
+        ctx.translate(player.x, centerY);
+        if (player.isFlipping) {
+          ctx.rotate(player.flipAngle);
+        }
+
+        if (player.isSliding) {
+          // ПОЗА ПОДКАТА
+          ctx.shadowColor = 'rgba(184, 255, 0, 0.45)';
+          ctx.shadowBlur = 10 * S;
+
+          // Вытянутые ноги вперёд
+          ctx.strokeStyle = '#F4F6FA';
+          ctx.lineWidth = 6 * S;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-6 * S, 6 * S);
+          ctx.lineTo(18 * S, 10 * S);
+          ctx.stroke();
+
+          // Корпус низко к земле
+          ctx.fillStyle = '#141923';
+          ctx.strokeStyle = '#B8FF00';
+          ctx.lineWidth = 2.2 * S;
+          ctx.beginPath();
+          ctx.roundRect(-16 * S, -6 * S, 26 * S, 14 * S, 7 * S);
+          ctx.fill();
+          ctx.stroke();
+
+          // Голова с оранжевой повязкой
+          ctx.fillStyle = '#F4F6FA';
+          ctx.beginPath();
+          ctx.arc(-8 * S, -10 * S, 8.5 * S, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#FF5500';
+          ctx.fillRect(-16.5 * S, -13 * S, 17 * S, 4 * S);
+        } else {
+          // ПОЗА БЕГА ИЛИ ПРЫЖКА
+          const legSwing = player.onGround ? Math.sin(player.runCycle) * 14 * S : 9 * S;
+          const armSwing = player.onGround ? Math.cos(player.runCycle) * 12 * S : -10 * S;
+          const lean = player.onGround ? 0.16 : (player.vy < 0 ? 0.08 : 0.24);
+          ctx.rotate(lean);
+
+          // Задняя нога
+          ctx.strokeStyle = '#8E99AD';
+          ctx.lineWidth = 5.5 * S;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(0, 6 * S);
+          ctx.lineTo(-legSwing, 28 * S);
+          ctx.stroke();
+
+          // Передняя нога
+          ctx.strokeStyle = '#F4F6FA';
+          ctx.beginPath();
+          ctx.moveTo(0, 6 * S);
+          ctx.lineTo(legSwing, 28 * S);
+          ctx.stroke();
+
+          // Задняя рука
+          ctx.strokeStyle = '#8E99AD';
+          ctx.lineWidth = 4.8 * S;
+          ctx.beginPath();
+          ctx.moveTo(0, -10 * S);
+          ctx.lineTo(-armSwing, 4 * S);
+          ctx.stroke();
+
+          // Атлетичный торс с неоновой обводкой
+          ctx.shadowColor = 'rgba(184, 255, 0, 0.35)';
+          ctx.shadowBlur = 10 * S;
+          ctx.fillStyle = '#151A25';
+          ctx.strokeStyle = '#B8FF00';
+          ctx.lineWidth = 2.2 * S;
+          ctx.beginPath();
+          ctx.roundRect(-8 * S, -16 * S, 16 * S, 25 * S, 6 * S);
+          ctx.fill();
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+
+          // Передняя рука
+          ctx.strokeStyle = '#F4F6FA';
+          ctx.lineWidth = 4.8 * S;
+          ctx.beginPath();
+          ctx.moveTo(2 * S, -10 * S);
+          ctx.lineTo(armSwing + 4 * S, 2 * S);
+          ctx.stroke();
+
+          // Голова
+          ctx.fillStyle = '#F4F6FA';
+          ctx.beginPath();
+          ctx.arc(2 * S, -25 * S, 9 * S, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Оранжевая повязка ниндзя
+          ctx.fillStyle = '#FF5500';
+          ctx.fillRect(-7 * S, -28 * S, 18 * S, 4.2 * S);
+
+          // Глаз/визор
+          ctx.fillStyle = '#0B0D12';
+          ctx.fillRect(4 * S, -26.5 * S, 5 * S, 2.5 * S);
+        }
+
+        ctx.restore();
+      }
+
+      function drawParticles() {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const alpha = Math.max(0, p.life / p.maxLife);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function drawPopups() {
+        for (let i = 0; i < popups.length; i++) {
+          const pop = popups[i];
+          const alpha = Math.max(0, pop.life / pop.maxLife);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.font = `900 ${Math.round(18 * S)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = pop.color;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+          ctx.shadowBlur = 6;
+          ctx.fillText(pop.text, pop.x, pop.y);
+          ctx.restore();
+        }
+      }
+
+      /* ========================================================================
+         10. ОБРАБОТЧИКИ СОБЫТИЙ (ТАЧ, СВАЙПЫ, КЛАВИАТУРА, КНОПКИ)
+         ======================================================================== */
+      let touchStartY = null;
+      let swipeTriggered = false;
+
+      canvas.addEventListener('touchstart', (e) => {
+        if (state !== 'playing') return;
+        e.preventDefault();
+        if (e.touches.length > 0) {
+          touchStartY = e.touches[0].clientY;
+          swipeTriggered = false;
+          // Мгновенный отклик на тап; если пойдёт свайп вниз — сработает fast-fall в подкат
+          doJump();
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (state !== 'playing' || touchStartY === null) return;
+        e.preventDefault();
+        if (!swipeTriggered && e.touches.length > 0) {
+          const dy = e.touches[0].clientY - touchStartY;
+          if (dy > 28) {
+            swipeTriggered = true;
+            doSlide();
+          }
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', () => {
+        touchStartY = null;
+        swipeTriggered = false;
+      });
+
+      // Поддержка мыши на десктопе
+      canvas.addEventListener('mousedown', (e) => {
+        if (state !== 'playing') return;
+        if (e.button === 0) doJump();
+      });
+
+      // Кнопка «ПРИСЕД» (не вызывает прыжок)
+      slideBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        doSlide();
+      }, { passive: false });
+
+      slideBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        doSlide();
+      });
+
+      // Клавиатура (ПК)
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+          e.preventDefault();
+          if (state === 'playing') {
+            doJump();
+          } else if (state === 'start' || state === 'gameover') {
+            startGame();
+          }
+        } else if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+          e.preventDefault();
+          if (state === 'playing') doSlide();
+        }
+      });
+
+      // Кнопки интерфейса
+      startBtn.addEventListener('click', startGame);
+      restartBtn.addEventListener('click', startGame);
+
+      closeBtn.addEventListener('click', () => {
+        hapticImpact('light');
+        if (tg && typeof tg.close === 'function') {
+          try {
+            tg.close();
+          } catch (e) {
+            gameOverOverlay.classList.add('hidden');
+            startOverlay.classList.remove('hidden');
+            state = 'start';
+          }
+        } else {
+          // Фолбэк в обычном браузере
+          gameOverOverlay.classList.add('hidden');
+          startOverlay.classList.remove('hidden');
+          state = 'start';
+        }
+      });
+
+      soundBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        Sound.muted = !Sound.muted;
+        soundBtn.classList.toggle('muted', Sound.muted);
+        soundIconOn.style.display = Sound.muted ? 'none' : 'block';
+        soundIconOff.style.display = Sound.muted ? 'block' : 'none';
+        if (!Sound.muted) {
+          Sound.unlock();
+          Sound.collectChalk();
+        }
+        hapticImpact('light');
+      });
+
+      window.addEventListener('resize', resizeCanvas);
+
+      /* ========================================================================
+         11. ЗАПУСК ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+         ======================================================================== */
+      let lastTime = 0;
+
+      function gameLoop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+        lastTime = timestamp;
+
+        update(dt);
+        draw();
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      window.onload = function () {
+        initTelegram();
+        resizeCanvas();
+        resetGame();
+        hudBest.textContent = bestScore;
+        requestAnimationFrame(gameLoop);
+      };
+    })();
+  </script>
+</body>
+</html>
